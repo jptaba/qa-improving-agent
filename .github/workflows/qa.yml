@@ -1,0 +1,98 @@
+name: qa
+
+on:
+  pull_request:
+  schedule:
+    - cron: '17 6 * * *' # nightly canary
+  workflow_dispatch:
+
+concurrency:
+  group: qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Replace the demo AUT with your per-PR preview: seeded DB, test-only keys, TTL, health-poll.
+  # Then pass its URL to the jobs below as BASE_URL / --url.
+
+  e2e:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - name: Deterministic suite (required check)
+        run: npx playwright test --shard=${{ matrix.shard }}/2
+        env:
+          PW_JSON_OUTPUT: reports/results-${{ matrix.shard }}.json
+      - name: Skipped = failed, flaky = needs review
+        if: ${{ !cancelled() }}
+        run: node harness/ci/fail-on-skip-or-flaky.mjs reports/results-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ matrix.shard }}
+          path: reports/
+          retention-days: 14
+
+  guardrails:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Hook self-test
+        run: node harness/hooks/selftest.mjs
+      - name: Inventory guard (only status may change)
+        run: node harness/ci/inventory-guard.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+      - name: Heal-diff check (agent-authored PRs)
+        if: contains(github.event.pull_request.labels.*.name, 'agent-authored')
+        run: node harness/hooks/heal-diff-check.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+
+  blind-evaluator:
+    # In production this job lives in the SEALED repo with its own token and receives only
+    # the requirements bundle + the preview URL.
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - name: Start demo AUT (replace with preview URL)
+        run: |
+          node demo-aut/server.mjs &
+          npx --yes wait-on http://localhost:4173/api/health
+      - name: Acceptance verdicts (required check)
+        run: node sealed-acceptance/evaluator/run-evaluator.mjs --requirements requirements --url http://localhost:4173
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: acceptance-verdicts
+          path: sealed-acceptance/out/
+
+  canary:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - name: Planted bugs + impossible builds + healthy pass^k
+        run: node harness/canary/run-canary.mjs --k 3
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: scorecard
+          path: scorecard/

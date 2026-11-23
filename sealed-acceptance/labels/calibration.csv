@@ -1,0 +1,3 @@
+task_id,requirement_id,build_ref,expert_label,expert_critique,split,labelled_by,labelled_on
+T001,REQ-142,demo FAULT=expired-card-accepted,fail,"Expired card was charged; requirement says block and show update-card message",test,,
+T002,REQ-142,demo healthy,pass,"Blocked with correct message; valid card completed",test,,

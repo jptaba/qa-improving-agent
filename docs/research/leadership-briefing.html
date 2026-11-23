@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-Improving Test Agents — Leadership Briefing &amp; Implementation Guide</title>
+<style>
+:root{
+  --ink:#0b1020; --ink2:#121a33; --panel:#18213f; --line:#2a3560;
+  --text:#e9ecf7; --muted:#9aa4c7; --dim:#6b76a0;
+  --accent:#ff8a4c; --accent2:#5ad1c8; --accent3:#9d8cff; --good:#7bd88f; --bad:#ff6b7a; --warn:#ffd166;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans: ui-sans-serif,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono: ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--sans);background:var(--ink);color:var(--text);-webkit-font-smoothing:antialiased}
+a{color:var(--accent2)}
+button{font:inherit;color:inherit}
+
+/* ---------- top bar / tabs ---------- */
+.topbar{position:fixed;inset:0 0 auto 0;height:52px;display:flex;align-items:center;gap:14px;padding:0 18px;
+  background:rgba(11,16,32,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:50}
+.brand{font-weight:650;letter-spacing:.2px;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand b{color:var(--text)}
+.tabs{display:flex;gap:4px;margin-left:auto;background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tab{border:0;background:transparent;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--muted);white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--panel);color:var(--text);box-shadow:0 0 0 1px var(--line) inset}
+.tool{border:1px solid var(--line);background:var(--ink2);border-radius:8px;padding:7px 10px;font-size:13px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.tool:hover{color:var(--text)}
+.view{display:none}
+.view.active{display:block}
+
+/* ---------- deck ---------- */
+#deck{position:fixed;inset:52px 0 0 0;overflow:hidden;
+  background:radial-gradient(1200px 700px at 85% -10%,rgba(157,140,255,.16),transparent 60%),
+             radial-gradient(900px 600px at -10% 110%,rgba(90,209,200,.12),transparent 60%),var(--ink)}
+.slide{position:absolute;inset:0;padding:clamp(28px,5vh,64px) clamp(24px,7vw,110px) 80px;display:flex;flex-direction:column;justify-content:center;
+  opacity:0;pointer-events:none;transform:translateX(40px);transition:opacity .6s var(--ease),transform .7s var(--ease)}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.past{transform:translateX(-40px)}
+.kicker{font-size:clamp(12px,1.3vw,15px);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:650;margin-bottom:14px}
+.slide h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5.6vw,78px);line-height:1.04;margin:0 0 18px;letter-spacing:-.01em}
+.slide h2{font-family:var(--serif);font-weight:500;font-size:clamp(28px,3.9vw,54px);line-height:1.08;margin:0 0 16px;letter-spacing:-.01em}
+.lede{font-size:clamp(16px,1.7vw,23px);line-height:1.5;color:var(--muted);max-width:60ch;margin:0}
+.lede b,.lede strong{color:var(--text);font-weight:600}
+.hl{color:var(--accent)} .hl2{color:var(--accent2)} .hl3{color:var(--accent3)}
+
+/* reveal animation */
+.r{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .8s var(--ease);transition-delay:calc(var(--d,0) * 140ms + 150ms)}
+.slide.active .r{opacity:1;transform:none}
+
+.grid{display:grid;gap:clamp(12px,1.6vw,22px);margin-top:clamp(18px,3vh,34px)}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));border:1px solid var(--line);border-radius:16px;padding:clamp(14px,1.6vw,22px)}
+.card h3{margin:0 0 6px;font-size:clamp(15px,1.45vw,20px);font-weight:650}
+.card p{margin:0;color:var(--muted);font-size:clamp(13px,1.15vw,16px);line-height:1.45}
+.big{font-family:var(--serif);font-size:clamp(40px,5.4vw,80px);line-height:1;color:var(--accent);margin-bottom:8px}
+.big.teal{color:var(--accent2)} .big.violet{color:var(--accent3)} .big.red{color:var(--bad)}
+.src{font-size:11.5px;color:var(--dim);margin-top:8px}
+.tag{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--muted);margin-bottom:10px}
+
+/* flow */
+.flow{display:flex;align-items:stretch;gap:0;margin-top:clamp(22px,4vh,44px);flex-wrap:nowrap}
+.node{flex:1 1 0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:center;position:relative}
+.node .ic{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.node b{display:block;font-size:clamp(13px,1.35vw,18px);margin-bottom:4px}
+.node span{font-size:clamp(11px,1vw,13.5px);color:var(--muted);line-height:1.35;display:block}
+.node.ref{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,0 0 40px rgba(255,138,76,.18)}
+.node.ai::after{content:"AI";position:absolute;top:-9px;right:10px;font-size:10px;background:var(--accent3);color:#0b1020;border-radius:6px;padding:1px 6px;font-weight:700}
+.node.code::after{content:"no AI";position:absolute;top:-9px;right:10px;font-size:10px;background:var(--accent2);color:#0b1020;border-radius:6px;padding:1px 6px;font-weight:700}
+.arrow{flex:0 0 clamp(14px,2.4vw,38px);align-self:center;height:2px;background:linear-gradient(90deg,var(--line),var(--accent2));position:relative;transform-origin:left;transform:scaleX(0);transition:transform .5s var(--ease);transition-delay:calc(var(--d,0) * 140ms + 300ms)}
+.arrow::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid var(--accent2);border-right:0}
+.slide.active .arrow{transform:scaleX(1)}
+.loops{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap}
+.pill{border:1px dashed var(--line);border-radius:999px;padding:8px 14px;font-size:clamp(12px,1.1vw,14.5px);color:var(--muted)}
+.pill b{color:var(--text)}
+
+/* ring */
+.ringwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(20px,4vw,60px);align-items:center}
+.ring{position:relative;width:min(44vh,40vw);aspect-ratio:1;margin:auto}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ring circle.track{fill:none;stroke:var(--line);stroke-width:1.2}
+.ring circle.run{fill:none;stroke:var(--accent2);stroke-width:2;stroke-dasharray:6 10;animation:spin 18s linear infinite;transform-origin:50% 50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rnode{position:absolute;transform:translate(-50%,-50%);width:max(110px,9.5vw);text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 8px;font-size:clamp(11px,1vw,13.5px);line-height:1.3}
+.rnode b{display:block;color:var(--accent2);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.rcenter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:36%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle,rgba(255,138,76,.22),rgba(255,138,76,.04));border:1px solid var(--accent);font-size:clamp(12px,1.15vw,15px);padding:10px}
+.rcenter b{display:block;font-family:var(--serif);font-size:clamp(16px,1.7vw,24px);color:var(--accent);font-weight:500}
+
+/* timeline */
+.tl{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:clamp(26px,5vh,50px)}
+.tl::before{content:"";position:absolute;left:0;right:0;top:15px;height:2px;background:var(--line)}
+.tl .bar{position:absolute;left:0;top:15px;height:2px;background:linear-gradient(90deg,var(--accent2),var(--accent));width:0;transition:width 2.2s var(--ease) .4s}
+.slide.active .tl .bar{width:100%}
+.ph{position:relative;padding-top:42px}
+.ph .dot{position:absolute;top:6px;left:0;width:20px;height:20px;border-radius:50%;background:var(--ink);border:2px solid var(--accent2)}
+.ph .n{font-size:11px;letter-spacing:.14em;color:var(--accent2);text-transform:uppercase}
+.ph b{display:block;font-size:clamp(13px,1.3vw,17px);margin:4px 0 6px}
+.ph p{margin:0;font-size:clamp(11px,1vw,13.5px);color:var(--muted);line-height:1.4}
+.ph .gate{margin-top:8px;font-size:clamp(10.5px,.95vw,12.5px);color:var(--warn)}
+
+/* compare bars */
+.bars{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+.barrow{display:grid;grid-template-columns:minmax(120px,26%) 1fr 60px;gap:12px;align-items:center;font-size:clamp(12px,1.15vw,15px);color:var(--muted)}
+.track2{height:14px;background:var(--ink2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.fill{height:100%;width:0;border-radius:999px;background:var(--accent);transition:width 1.4s var(--ease);transition-delay:calc(var(--d,0) * 160ms + 400ms)}
+.slide.active .fill{width:var(--w)}
+.fill.teal{background:var(--accent2)} .fill.red{background:var(--bad)}
+
+.locks .card{display:flex;gap:12px;align-items:flex-start}
+.lock{flex:0 0 34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(90,209,200,.12);color:var(--accent2)}
+.lock svg{width:18px;height:18px}
+
+.quote{font-family:var(--serif);font-size:clamp(22px,2.8vw,38px);line-height:1.25;max-width:28ch}
+.split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(20px,4vw,64px);align-items:center}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vs .card.no{border-color:rgba(255,107,122,.4)} .vs .card.yes{border-color:rgba(123,216,143,.45)}
+.vs h3 .x{color:var(--bad)} .vs h3 .v{color:var(--good)}
+ul.clean{list-style:none;padding:0;margin:8px 0 0}
+ul.clean li{padding:5px 0 5px 20px;position:relative;color:var(--muted);font-size:clamp(13px,1.15vw,16px);line-height:1.4}
+ul.clean li::before{content:"";position:absolute;left:2px;top:12px;width:8px;height:8px;border-radius:2px;background:var(--accent2)}
+.ask .card{border-left:3px solid var(--accent)}
+.ask .num{font-family:var(--serif);font-size:28px;color:var(--accent);line-height:1}
+
+/* deck chrome */
+.deckbar{position:absolute;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:12px;padding:0 18px;z-index:5}
+.prog{position:absolute;left:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s var(--ease)}
+.counter{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.navbtn{border:1px solid var(--line);background:var(--ink2);border-radius:999px;width:36px;height:36px;cursor:pointer;color:var(--muted)}
+.navbtn:hover{color:var(--text)}
+.hint{margin-left:auto;font-size:11.5px;color:var(--dim)}
+.hint kbd{font-family:var(--mono);border:1px solid var(--line);border-radius:4px;padding:0 5px;margin:0 2px}
+.notes{position:absolute;right:18px;bottom:66px;width:min(440px,90vw);max-height:46vh;overflow:auto;background:rgba(18,26,51,.97);border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:14px;line-height:1.55;color:var(--muted);display:none;z-index:6}
+.notes.show{display:block}
+.notes h4{margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+
+/* ---------- guide ---------- */
+#guide{background:#f6f5f1;color:#1c2133;min-height:100vh;padding-top:52px}
+.gwrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1280px;margin:0 auto}
+.gwrap>*{min-width:0}
+.gmain p,.gmain li{overflow-wrap:break-word}
+@media (max-width:700px){
+  #guide .gmain table,#guide .gmain tbody,#guide .gmain tr,#guide .gmain td{display:block;width:100%}
+  #guide .gmain table{background:transparent;border:0;overflow:visible}
+  #guide .gmain tr.hrow{display:none}
+  #guide .gmain tr{background:#fff;border:1px solid #e2e0d8;border-radius:12px;margin:0 0 12px;padding:6px 0}
+  #guide .gmain td{border:0;padding:6px 14px;font-size:14px}
+  #guide .gmain td[data-label]::before{content:attr(data-label);display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a8677;margin-bottom:2px}
+  #guide .gmain td:first-child{font-size:15px;padding-top:10px}
+  #guide .gmain td:first-child::before{display:none}
+}
+.gmain pre{max-width:100%;-webkit-overflow-scrolling:touch}
+.gmain table{max-width:100%;-webkit-overflow-scrolling:touch}
+.gmain td code,.gmain p code,.gmain li code{word-break:break-word}
+.toc{position:sticky;top:52px;align-self:start;height:calc(100vh - 52px);overflow:auto;padding:28px 18px 40px 22px;border-right:1px solid #e2e0d8;font-size:13.5px}
+.toc .t{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8677;margin:0 0 10px}
+.toc a{display:block;color:#4a4f63;text-decoration:none;padding:5px 10px;border-radius:7px;line-height:1.3}
+.toc a:hover{background:#ecebe4}
+.toc a.on{background:#1c2133;color:#fff}
+.gmain{padding:40px clamp(20px,4vw,64px) 120px;max-width:920px}
+.gmain h1{font-family:var(--serif);font-weight:500;font-size:clamp(32px,4vw,46px);line-height:1.1;margin:0 0 12px}
+.gmain h2{font-family:var(--serif);font-weight:500;font-size:30px;margin:56px 0 12px;padding-top:12px;border-top:1px solid #e2e0d8;scroll-margin-top:70px}
+.gmain h3{font-size:18px;margin:28px 0 8px}
+.gmain p,.gmain li{font-size:16px;line-height:1.65;color:#2d3247}
+.gmain .sub{font-size:18px;color:#5a5f73;max-width:65ch}
+.gmain table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:14px;background:#fff;border:1px solid #e2e0d8;border-radius:10px;overflow:hidden;display:block;overflow-x:auto}
+.gmain th,.gmain td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid #ecebe4;line-height:1.45}
+.gmain th{background:#f0efe9;font-weight:650;font-size:12.5px;letter-spacing:.02em;white-space:nowrap}
+.gmain tr:last-child td{border-bottom:0}
+.gmain code{font-family:var(--mono);font-size:.88em;background:#ecebe4;padding:1px 5px;border-radius:4px}
+pre{background:#141a2e;color:#e6e9f5;border-radius:12px;padding:16px 18px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.55;margin:12px 0 18px}
+pre code{background:none!important;padding:0!important;color:inherit;font-size:inherit!important}
+pre .c{color:#7e89b3}
+.callout{border-left:3px solid #ff8a4c;background:#fff4ec;padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
+.callout.teal{border-color:#2aa79d;background:#e9f7f5}
+.callout.violet{border-color:#7a68f0;background:#f0eeff}
+.callout p{margin:0}
+.lbl{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;padding:1px 7px;border-radius:5px;vertical-align:1px}
+.lbl.v{background:#dff3e4;color:#1f6b33} .lbl.vc{background:#fff0d1;color:#8a5a00} .lbl.i{background:#ece8ff;color:#4b3bb8}
+.planes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.plane{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:12px}
+.plane b{display:block;font-size:14px;margin-bottom:4px}
+.plane span{font-size:13px;color:#5a5f73;line-height:1.4;display:block}
+.plane.sealed{border-color:#ff8a4c;background:#fff8f3}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.pipe div{background:#fff;border:1px solid #e2e0d8;border-radius:10px;padding:8px 12px;font-size:13.5px}
+.pipe div.req{border-color:#2aa79d}
+.pipe i{color:#8a8677;font-style:normal}
+.check li{list-style:none;position:relative;padding-left:26px}
+.check{padding-left:0}
+.check li::before{content:"";position:absolute;left:2px;top:7px;width:13px;height:13px;border:2px solid #2aa79d;border-radius:4px}
+.gfoot{margin-top:60px;font-size:13px;color:#8a8677}
+.mjump{display:none;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8a8677;margin-bottom:18px}
+.mjump select{display:block;width:100%;margin-top:6px;font:15px var(--sans);padding:10px 12px;border:1px solid #d8d6cc;border-radius:10px;background:#fff;color:#1c2133;text-transform:none;letter-spacing:0}
+@media (max-width:900px){.mjump{display:block}}
+
+@media (max-width:900px){
+  .g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .flow{flex-wrap:wrap;gap:10px}.arrow{display:none}.node{flex:1 1 40%}
+  .ringwrap,.split{grid-template-columns:1fr}
+  .ring{width:min(70vw,340px)}
+  .tl{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:24px}.tl::before,.tl .bar{display:none}
+  .gwrap{grid-template-columns:minmax(0,1fr)}.toc{display:none}
+  .gmain{padding:28px 18px 80px}
+  .gmain h2{font-size:25px;margin-top:40px}
+  .gmain p,.gmain li{font-size:15.5px}
+  .gmain table{font-size:13px}
+  .gmain th{white-space:normal}
+  pre{font-size:12px;padding:14px}
+  .planes{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hint{display:none}
+  .slide{justify-content:flex-start;overflow-y:auto}
+}
+@media (max-width:560px){ .g2,.g3,.g4,.vs{grid-template-columns:1fr} .brand{display:none} .planes{grid-template-columns:1fr} .tabs{margin-left:0} .tab{padding:7px 10px} }
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation:none!important;transition-delay:0ms!important}
+}
+@media print{
+  .topbar,.toc{display:none} #guide{padding-top:0} .gwrap{display:block}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lk" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="brand"><b>Self-Improving Test Agents</b> · leadership briefing</div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-view="deck">Presentation</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="guide">Implementation guide</button>
+  </div>
+  <button class="tool" id="fs" title="Full screen (F)">⤢ Present</button>
+</header>
+
+<!-- =================== PRESENTATION =================== -->
+<main id="deck" class="view active" aria-label="Presentation">
+
+<section class="slide" data-notes="Open with the one-line idea. We are not buying a smarter robot tester. We are building a team of AI helpers plus an independent referee, so the system can improve itself without fooling itself. Everything that follows explains why the referee matters.">
+  <div class="kicker r">Leadership briefing · Quality engineering</div>
+  <h1 class="r" style="--d:1">Test agents that<br><span class="hl">can't grade their<br>own homework</span></h1>
+  <p class="lede r" style="--d:2">How we let AI test our applications, and get better every week, <b>without it fooling itself or us.</b></p>
+</section>
+
+<section class="slide" data-notes="Set up the problem in business terms. Teams now produce code faster than ever, often with AI help. Testing has not kept pace. Manual regression testing is slow, automated suites break when screens change, and nobody fully trusts a green build. The cost shows up as slower releases or escaped defects.">
+  <div class="kicker r">The problem</div>
+  <h2 class="r" style="--d:1">We build faster than we can <span class="hl">check</span>.</h2>
+  <div class="grid g3">
+    <div class="card r" style="--d:2"><h3>Testing is the bottleneck</h3><p>AI-assisted coding speeds up delivery, while confirming it works is still largely manual and slow.</p></div>
+    <div class="card r" style="--d:3"><h3>Automated tests are brittle</h3><p>A button moves and dozens of tests fail. Teams spend time fixing tests instead of finding bugs.</p></div>
+    <div class="card r" style="--d:4"><h3>"Green" isn't trusted</h3><p>When tests are flaky or quietly skipped, a passing build stops meaning the product works.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="The opportunity is real and measured. Meta's engineers accepted 73 percent of AI-proposed test improvements in production. A peer-reviewed 2025 study gave AI testers a memory of past runs and they found between 57 and 198 percent more bugs. Changing only the surrounding system, not the AI model, moved one agent from about 53 to 67 percent on a standard benchmark. That last figure is the vendor's own number.">
+  <div class="kicker r">The opportunity</div>
+  <h2 class="r" style="--d:1">AI testers already deliver, <span class="hl2">when they learn from experience.</span></h2>
+  <div class="grid g3">
+    <div class="card r" style="--d:2"><div class="big teal"><span class="count" data-to="73">0</span>%</div><h3>accepted by engineers</h3><p>Share of AI-proposed test improvements Meta's engineers accepted in production.</p><div class="src">Meta TestGen-LLM, FSE 2024</div></div>
+    <div class="card r" style="--d:3"><div class="big teal">+<span class="count" data-to="198">0</span>%</div><h3>more bugs found</h3><p>Upper end of the gain when AI testers kept a memory of past runs (range +57% to +198%).</p><div class="src">MemoDroid, ASE 2025 (Android apps)</div></div>
+    <div class="card r" style="--d:4"><div class="big teal"><span class="count" data-to="53">0</span>→<span class="count" data-to="67">0</span>%</div><h3>same AI, better harness</h3><p>Improving only the system around the model lifted benchmark results.</p><div class="src">LangChain, 2026 (vendor-reported)</div></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="This is the most important slide. Left unchecked, AI agents mark their own work generously. In a 2025 study, a leading model cheated on 76 percent of tasks designed to be impossible, mostly by editing the tests. Self-healing tests, which repair themselves when a screen changes, picked the wrong element about one time in four in the only measured study we found. So the test goes green but no longer checks what it should. Retrying made cheating worse, not better.">
+  <div class="kicker r">The catch</div>
+  <h2 class="r" style="--d:1">Left alone, AI <span class="hl">grades itself generously.</span></h2>
+  <div class="split">
+    <div class="bars">
+      <div class="barrow r" style="--d:2"><span>Cheated on impossible tasks</span><div class="track2"><div class="fill red" style="--w:76%;--d:2"></div></div><b style="color:var(--bad)">76%</b></div>
+      <div class="barrow r" style="--d:3"><span>Self-healed tests that fixed the wrong thing</span><div class="track2"><div class="fill red" style="--w:25%;--d:3"></div></div><b style="color:var(--bad)">~25%</b></div>
+      <div class="barrow r" style="--d:4"><span>Cheating caught by AI reviewers</span><div class="track2"><div class="fill" style="--w:65%;--d:4"></div></div><b>42–65%</b></div>
+      <div class="src r" style="--d:5">Sources: ImpossibleBench (2025), SD Times false-heal study (2026, one study).</div>
+    </div>
+    <div class="r" style="--d:3">
+      <p class="quote">"Agents reliably skew positive when grading their own work."</p>
+      <p class="src" style="font-size:13px">Anthropic engineering, 2026</p>
+      <p class="lede" style="margin-top:18px">The risk is a <b>green dashboard that hides real bugs</b>. A test that quietly stops checking is worse than no test.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Our answer in one sentence. Think of an exam. Students can study and practise all they like, but an external examiner marks the final paper, and students never see the exam questions in advance. Our AI helpers are the students; the independent referee is the examiner.">
+  <div class="kicker r">Our approach</div>
+  <h2 class="r" style="--d:1">A team of specialists,<br>plus an <span class="hl">independent referee.</span></h2>
+  <div class="vs grid">
+    <div class="card no r" style="--d:2"><h3><span class="x">✕</span> One all-purpose AI tester</h3>
+      <ul class="clean"><li>Writes, runs, fixes and judges its own tests</li><li>Learns to make the dashboard green</li><li>No one can tell if it's improving or gaming</li></ul></div>
+    <div class="card yes r" style="--d:3"><h3><span class="v">✓</span> Narrow roles + sealed referee</h3>
+      <ul class="clean"><li>Each AI does one job with limited permissions</li><li>A referee checks the app <b>only against business requirements</b></li><li>Improvement only counts if the referee agrees</li></ul></div>
+  </div>
+  <p class="lede r" style="--d:4;margin-top:22px">Like an exam marked by an <b>external examiner</b> the students never meet.</p>
+</section>
+
+<section class="slide" data-notes="Walk the flow left to right. Requirements are the business rules written in plain language. The planner turns them into test plans; the generator writes the actual test scripts. Then tests run with no AI involved at all, which keeps that step fast, cheap and repeatable. The referee checks the running app against the requirements. Only then does the change ship. Two loops sit underneath: failures go to a triage helper that proposes fixes for human review, and once a week a learning step improves the whole system.">
+  <div class="kicker r">How it works</div>
+  <h2 class="r" style="--d:1">From business rule to <span class="hl2">trusted release</span></h2>
+  <div class="flow">
+    <div class="node r" style="--d:2"><div class="ic">Input</div><b>Requirements</b><span>Acceptance criteria, journeys, API contracts</span></div>
+    <div class="arrow" style="--d:2"></div>
+    <div class="node ai r" style="--d:3"><div class="ic">Plan</div><b>Planner</b><span>Turns each rule into a test plan</span></div>
+    <div class="arrow" style="--d:3"></div>
+    <div class="node ai r" style="--d:4"><div class="ic">Build</div><b>Generator</b><span>Writes the test scripts</span></div>
+    <div class="arrow" style="--d:4"></div>
+    <div class="node code r" style="--d:5"><div class="ic">Run</div><b>Test run</b><span>Fast, repeatable, every change</span></div>
+    <div class="arrow" style="--d:5"></div>
+    <div class="node ref ai r" style="--d:6"><div class="ic">Judge</div><b>Referee</b><span>Checks the app against requirements only</span></div>
+    <div class="arrow" style="--d:6"></div>
+    <div class="node r" style="--d:7"><div class="ic">Output</div><b>Release</b><span>With evidence for every rule</span></div>
+  </div>
+  <div class="loops">
+    <div class="pill r" style="--d:8"><b>Fix loop:</b> failures → triage helper proposes a fix → human approves</div>
+    <div class="pill r" style="--d:9"><b>Learning loop:</b> weekly, the system improves its own playbook</div>
+  </div>
+</section>
+
+<section class="slide" data-notes="The referee is the trust anchor. It reads only what the business asked for: acceptance criteria, the customer journey, what's in and out of scope, and any new API contracts. It never sees the code. It runs in a fresh, temporary copy of the environment. It can say pass, fail, unknown, or could not verify, and the last two go to a person. Before we trust it, we calibrate it against expert judgement on 20 to 50 real cases, and we use a different AI model family from the builders.">
+  <div class="kicker r">The referee</div>
+  <div class="split">
+    <div>
+      <h2 class="r" style="--d:1">It sees <span class="hl">what the business asked for</span>, never the code.</h2>
+      <p class="lede r" style="--d:2">The blind acceptance evaluator is the last required check before release.</p>
+    </div>
+    <div class="grid g2" style="margin-top:0">
+      <div class="card r" style="--d:2"><span class="tag">Sees</span><h3>Requirements only</h3><p>Acceptance criteria, journeys, scope, API contracts.</p></div>
+      <div class="card r" style="--d:3"><span class="tag">Never sees</span><h3>Code or changes</h3><p>Can't be "taught to the test" by the builders.</p></div>
+      <div class="card r" style="--d:4"><span class="tag">Verdicts</span><h3>Four, not two</h3><p>Pass · Fail · Unknown · Could not verify. The last two go to a person.</p></div>
+      <div class="card r" style="--d:5"><span class="tag">Trusted when</span><h3>Calibrated first</h3><p>Checked against expert verdicts before it gates anything.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-notes="This is how the system gets better. It doesn't retrain the AI. It builds up a playbook, like a team's shared notes: lessons learned, reusable steps such as logging in, and a log of past failures. Each week it studies its own run logs, proposes one improvement at a time, and tests it on practice apps. The improvement is kept only if it does no worse on a separate exam set it has never seen, and a person approves. Every change can be rolled back.">
+  <div class="kicker r">How it improves</div>
+  <div class="ringwrap">
+    <div>
+      <h2 class="r" style="--d:1">It learns like a team keeping <span class="hl2">good notes</span>, not by retraining.</h2>
+      <p class="lede r" style="--d:2">Every lesson becomes a written, versioned file that can be <b>reviewed and rolled back</b>. A change is kept only if it passes an exam the system has never seen.</p>
+    </div>
+    <div class="ring r" style="--d:2">
+      <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="40"/><circle class="run" cx="50" cy="50" r="40"/></svg>
+      <div class="rnode" style="left:50%;top:10%"><b>1 · Observe</b>Review run logs</div>
+      <div class="rnode" style="left:88%;top:37.6%"><b>2 · Diagnose</b>Group repeat failures</div>
+      <div class="rnode" style="left:73.5%;top:82.4%"><b>3 · Propose</b>One change at a time</div>
+      <div class="rnode" style="left:26.5%;top:82.4%"><b>4 · Practise</b>Try on practice builds</div>
+      <div class="rnode" style="left:12%;top:37.6%"><b>5 · Record</b>Update the playbook</div>
+      <div class="rcenter"><div><b>Exam gate</b>Unseen test set must not get worse, and a person approves</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-notes="These are enforced by software, not by asking the AI nicely. Test checks are locked. Any change that weakens a test, adds a skip, or extends a timeout goes to a person. Skipped tests count as failures. Retries are capped because retries increase cheating. Every agent has an easy way to say 'I think this is a real bug' instead of forcing a pass; in research that single option cut cheating from 54 to 9 percent. And we regularly feed in deliberately broken builds that must never come back green.">
+  <div class="kicker r">Guardrails</div>
+  <h2 class="r" style="--d:1">Six locks, <span class="hl">enforced by software</span>, not by trust.</h2>
+  <div class="grid g3 locks">
+    <div class="card r" style="--d:2"><div class="lock"><svg><use href="#lk"/></svg></div><div><h3>Checks are read-only</h3><p>AI can't edit what a test verifies.</p></div></div>
+    <div class="card r" style="--d:3"><div class="lock"><svg><use href="#lk"/></svg></div><div><h3>Weakening goes to a human</h3><p>Removed checks, new skips, longer waits all need sign-off.</p></div></div>
+    <div class="card r" style="--d:4"><div class="lock"><svg><use href="#lk"/></svg></div><div><h3>Skipped = failed</h3><p>No quiet way to turn a bug into green.</p></div></div>
+    <div class="card r" style="--d:5"><div class="lock"><svg><use href="#lk"/></svg></div><div><h3>Retries are capped</h3><p>More attempts increased cheating in research.</p></div></div>
+    <div class="card r" style="--d:6"><div class="lock"><svg><use href="#lk"/></svg></div><div><h3>Easy "this is a bug" exit</h3><p>Cut cheating from 54% to 9% in one study.</p></div></div>
+    <div class="card r" style="--d:7"><div class="lock"><svg><use href="#lk"/></svg></div><div><h3>Planted-bug alarms</h3><p>Deliberately broken builds must never pass.</p></div></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Playwright, the browser-testing tool from Microsoft, is our foundation. It now ships its own AI planner, generator and healer. But a product is more than screens, so we add a small set of specialist tools: API contract checks, accessibility, visual changes, performance, mobile and temporary test environments. Most now have connectors AI agents can use directly. Note that automated accessibility checks catch only about 57 percent of issues, so people stay in that loop.">
+  <div class="kicker r">The toolkit</div>
+  <h2 class="r" style="--d:1">Playwright for the browser. <span class="hl2">Specialists for the rest.</span></h2>
+  <div class="grid g4">
+    <div class="card r" style="--d:2"><span class="tag">Foundation</span><h3>User journeys</h3><p>Playwright with its built-in AI planner, generator and healer</p></div>
+    <div class="card r" style="--d:3"><span class="tag">Services</span><h3>API contracts</h3><p>Specmatic, Schemathesis; Pact between services</p></div>
+    <div class="card r" style="--d:4"><span class="tag">Inclusion</span><h3>Accessibility</h3><p>axe automated scans plus human review</p></div>
+    <div class="card r" style="--d:5"><span class="tag">Look &amp; feel</span><h3>Visual changes</h3><p>Screenshot comparison, Applitools with approvals</p></div>
+    <div class="card r" style="--d:6"><span class="tag">Speed</span><h3>Performance</h3><p>k6 load tests, Chrome DevTools diagnostics</p></div>
+    <div class="card r" style="--d:7"><span class="tag">Devices</span><h3>Mobile apps</h3><p>Maestro or Appium</p></div>
+    <div class="card r" style="--d:8"><span class="tag">Isolation</span><h3>Fresh environments</h3><p>A temporary copy per change, with test data</p></div>
+    <div class="card r" style="--d:9"><span class="tag">Visibility</span><h3>Full audit trail</h3><p>Every AI decision linked to browser evidence</p></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="We earn autonomy in stages. Each phase has a measurable exit gate, and we only move on when we pass it. Phase 0 is plumbing with no AI. Phase 1 adds AI-written tests with humans reviewing every one. Phase 2 builds and calibrates the referee. Only once the referee is trustworthy do we turn on the healing and the weekly self-improvement. We haven't put durations on these because they depend on the application and team; we'll size them after Phase 0.">
+  <div class="kicker r">Roadmap</div>
+  <h2 class="r" style="--d:1">Earn autonomy in stages, <span class="hl">each with a trust gate.</span></h2>
+  <div class="tl">
+    <div class="bar"></div>
+    <div class="ph r" style="--d:2"><div class="dot"></div><div class="n">Phase 0</div><b>Solid foundation</b><p>Fresh environments, repeatable runs, logging. No AI yet.</p><div class="gate">Gate: existing tests pass reliably</div></div>
+    <div class="ph r" style="--d:3"><div class="dot"></div><div class="n">Phase 1</div><b>AI writes tests</b><p>Every AI-written test reviewed by a person.</p><div class="gate">Gate: acceptance rate tracked</div></div>
+    <div class="ph r" style="--d:4"><div class="dot"></div><div class="n">Phase 2</div><b>The referee</b><p>Build and calibrate the blind evaluator.</p><div class="gate">Gate: planted bugs caught, no false passes</div></div>
+    <div class="ph r" style="--d:5"><div class="dot"></div><div class="n">Phase 3</div><b>Guarded fixing</b><p>Triage and healing, plus API, accessibility and visual tools.</p><div class="gate">Gate: wrong fixes measured</div></div>
+    <div class="ph r" style="--d:6"><div class="dot"></div><div class="n">Phase 4</div><b>Self-improvement</b><p>Weekly learning loop behind the exam gate.</p><div class="gate">Gate: detection rises, false alarms don't</div></div>
+    <div class="ph r" style="--d:7"><div class="dot"></div><div class="n">Phase 5</div><b>Scale out</b><p>Overnight exploration, mobile, more apps.</p><div class="gate">Gate: new real bugs found monthly</div></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Four numbers tell leadership whether this is working. The first is the headline: of the bugs we deliberately plant in builds the system has never seen, how many does it catch? The second is false alarms: if it cries wolf, teams stop trusting it. The third is integrity: deliberately impossible builds must never pass, and that number must stay at zero. The fourth is human acceptance and cost per change.">
+  <div class="kicker r">How we'll know it works</div>
+  <h2 class="r" style="--d:1">Four numbers on one page.</h2>
+  <div class="grid g4">
+    <div class="card r" style="--d:2"><div class="big teal">↑</div><h3>Bugs caught</h3><p>Share of deliberately planted bugs found on builds the system has never seen. <b style="color:var(--text)">The headline number.</b></p></div>
+    <div class="card r" style="--d:3"><div class="big violet">↓</div><h3>False alarms</h3><p>How often it fails a healthy build. Too high and teams stop trusting it.</p></div>
+    <div class="card r" style="--d:4"><div class="big red">0</div><h3>Integrity alarms</h3><p>Impossible builds that came back green. Must stay at zero.</p></div>
+    <div class="card r" style="--d:5"><div class="big">$</div><h3>Trust &amp; cost</h3><p>Share of AI proposals people accept, and cost and time per change.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Be candid about what we don't know. Most of the evidence on building these systems comes from AI companies' own engineering blogs and hasn't been independently replicated. The strongest testing evidence is from Android apps and unit tests, not web applications like ours. No public benchmark measures whether a web test agent finds real bugs. This is why the plan builds our own measurement first; we'll generate the evidence as we go.">
+  <div class="kicker r">Honest risks</div>
+  <h2 class="r" style="--d:1">What we <span class="hl">don't know yet</span>, and how we'll find out.</h2>
+  <div class="grid g2">
+    <div class="card r" style="--d:2"><h3>Evidence is early</h3><p>Much of the design guidance comes from AI vendors' own reports, not independent studies.</p></div>
+    <div class="card r" style="--d:3"><h3>Web results unproven</h3><p>The strongest results are from mobile apps and unit tests. Web impact must be measured on our apps.</p></div>
+    <div class="card r" style="--d:4"><h3>AI can be manipulated</h3><p>Web pages can carry hidden instructions. Verdicts come from code checks, and agents run in locked-down sandboxes.</p></div>
+    <div class="card r" style="--d:5"><h3>Our mitigation</h3><p>Build the measurement first (planted bugs, expert labels) so every claim is tested on our own software.</p></div>
+  </div>
+</section>
+
+<section class="slide ask" data-notes="Close with clear asks. First, approve Phase 0 to 2 as a pilot. Second, pick one application with clear written requirements. Third, name a domain expert who can spend a few hours labelling pass or fail cases; this is what makes the referee trustworthy. Fourth, agree a monthly AI and compute budget with hard caps per change. Agree a review date at the Phase 2 gate.">
+  <div class="kicker r">Decisions we need</div>
+  <h2 class="r" style="--d:1">Four asks to start the pilot.</h2>
+  <div class="grid g2">
+    <div class="card r" style="--d:2"><div class="num">1</div><h3>Approve Phases 0–2 as a pilot</h3><p>Foundation, AI-written tests with human review, and the calibrated referee.</p></div>
+    <div class="card r" style="--d:3"><div class="num">2</div><h3>Choose one pilot application</h3><p>Ideally one with clear acceptance criteria and API contracts.</p></div>
+    <div class="card r" style="--d:4"><div class="num">3</div><h3>Name a domain expert</h3><p>A few hours to label pass/fail cases. This is what makes the referee trustworthy.</p></div>
+    <div class="card r" style="--d:5"><div class="num">4</div><h3>Set a capped AI budget</h3><p>Hard per-change and monthly limits; running out means human review, never an automatic pass.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-notes="Leave them with the core idea, then open for questions. The implementation guide tab has the full technical design for the engineering team.">
+  <div class="kicker r">In one line</div>
+  <h1 class="r" style="--d:1;max-width:18ch">Let AI do the testing.<br><span class="hl">Keep the referee independent.</span></h1>
+  <p class="lede r" style="--d:2">What compounds isn't a smarter AI. It's a growing, reviewable playbook, counted only by something that can't be gamed.</p>
+  <p class="lede r" style="--d:3;margin-top:22px;font-size:15px">Questions · Full technical design in the <a href="#" data-goto="guide">Implementation guide</a> tab</p>
+</section>
+
+<div class="deckbar">
+  <div class="prog" id="prog"></div>
+  <button class="navbtn" id="prev" aria-label="Previous slide">‹</button>
+  <button class="navbtn" id="next" aria-label="Next slide">›</button>
+  <span class="counter" id="ctr">1 / 1</span>
+  <button class="tool" id="ntoggle" title="Speaker notes (N)">Notes</button>
+  <span class="hint"><kbd>←</kbd><kbd>→</kbd> navigate · <kbd>N</kbd> notes · <kbd>F</kbd> full screen</span>
+</div>
+<div class="notes" id="notes"><h4>Speaker notes</h4><div id="ntext"></div></div>
+</main>
+
+<!-- =================== IMPLEMENTATION GUIDE =================== -->
+<div id="guide" class="view" role="region" aria-label="Implementation guide">
+<div class="gwrap">
+<nav class="toc" id="toc">
+  <p class="t">Implementation guide</p>
+  <a href="#g-overview">1. Overview &amp; principles</a>
+  <a href="#g-arch">2. Reference architecture</a>
+  <a href="#g-roles">3. Agent roles &amp; permissions</a>
+  <a href="#g-repo">4. Repository layout</a>
+  <a href="#g-memory">5. Memory &amp; skills</a>
+  <a href="#g-tests">6. Authoring &amp; admission</a>
+  <a href="#g-guard">7. Guardrails (with code)</a>
+  <a href="#g-eval">8. The blind evaluator</a>
+  <a href="#g-loop">9. Self-improvement loop</a>
+  <a href="#g-stack">10. Complementary stack</a>
+  <a href="#g-ci">11. CI &amp; environments</a>
+  <a href="#g-obs">12. Observability</a>
+  <a href="#g-sec">13. Security</a>
+  <a href="#g-road">14. Roadmap &amp; exit criteria</a>
+  <a href="#g-metrics">15. Scorecard</a>
+  <a href="#g-open">16. Open decisions</a>
+  <a href="#g-src">17. Sources</a>
+</nav>
+<article class="gmain">
+
+<label class="mjump" for="mjump">Jump to section
+  <select id="mjump"><option value="">Choose a section…</option></select>
+</label>
+<h1>Self-improving test agents: implementation guide</h1>
+<p class="sub">A harness-engineering design for AI agents that test an application under test (AUT) with Playwright, extended with specialist tools where Playwright isn't enough, and anchored by a blind, requirements-only acceptance evaluator.</p>
+<div class="callout violet"><p><b>Evidence labels.</b> <span class="lbl v">VERIFIED</span> peer-reviewed research or primary product documentation. <span class="lbl vc">VENDOR</span> results a vendor reports about itself, not replicated. <span class="lbl i">INFERENCE</span> this design's synthesis. Versions reflect the state as of November 2026 (Playwright 1.64.1). Re-check versions before you build.</p></div>
+
+<h2 id="g-overview">1. Overview &amp; principles</h2>
+<p><b>Agent = Model + Harness.</b> The harness is everything except the model: the loop, tools, context, memory, hooks, permissions, checks and environment. Every harness component encodes an assumption about what the model can't do alone, so re-test each one when the model changes.</p>
+<p>Design vocabulary (Böckeler, martinfowler.com):</p>
+<ul>
+  <li><b>Guides</b> act before the agent acts: instructions, skills, docs.</li>
+  <li><b>Sensors</b> act after: tests, linters, judges.</li>
+  <li>Sensors are either <b>computational</b> (deterministic, cheap, run on every change) or <b>inferential</b> (an LLM review, slower and non-deterministic).</li>
+</ul>
+<h3>Seven principles for this system</h3>
+<ol>
+  <li><b>Agent writes code, CI runs code.</b> LLMs author, triage and improve tests. Only committed, deterministic Playwright tests sit in the merge-blocking path. <span class="lbl i">INFERENCE</span></li>
+  <li><b>Separate generator from evaluator.</b> Agents "reliably skew positive when grading their own work". Separate the role, the context and the prompt lineage, and prefer a different model family. <span class="lbl vc">VENDOR</span></li>
+  <li><b>Seal the evaluator.</b> No improving agent may read or write the evaluator, its corpus or its held-out builds. <span class="lbl v">VERIFIED</span> by ImpossibleBench and DGM failure cases.</li>
+  <li><b>Improve through files, not weights.</b> Skills, playbook bullets, app models and sensors live in git, so every change is reviewable and reversible.</li>
+  <li><b>Enforce rules with hooks and CI, not prompts.</b> Prompts are guidance. Hooks and required checks are law.</li>
+  <li><b>Make escalation cheap.</b> "Report AUT bug", "unknown" and "could not verify" are first-class outputs. In ImpossibleBench, an abort option cut GPT-5's cheating from 54% to 9%.</li>
+  <li><b>Measure before you automate.</b> Build the seeded-fault catalogue and the expert labels before turning on self-improvement.</li>
+</ol>
+
+<h2 id="g-arch">2. Reference architecture</h2>
+<p>The system splits into four planes. Agents in the work plane receive only requirement-level verdicts and evidence links from the sealed plane.</p>
+<div class="planes">
+  <div class="plane"><b>Control plane</b><span>Deterministic orchestrator: budgets, turn caps, hooks, permissions, requirement-ID registry. Written in code, not prompted.</span></div>
+  <div class="plane"><b>Work plane</b><span>LLM agents (planner, generator, triage, explorer, improver, gardener), each in a disposable sandbox with minimal tools.</span></div>
+  <div class="plane"><b>Evidence plane</b><span>Append-only store: Playwright traces, HAR, screenshots, OTel spans, verdicts, human labels.</span></div>
+  <div class="plane sealed"><b>Sealed acceptance plane</b><span>Blind evaluator, private test corpus, seeded-fault builds, impossible canaries, calibration labels. Separate repo and credentials.</span></div>
+</div>
+<p>Per-change flow:</p>
+<div class="pipe"><div class="req">Requirements bundle</div><i>→</i><div>Planner</div><i>→</i><div>Generator</div><i>→</i><div>Admission filters</div><i>→</i><div>Deterministic suite (required)</div><i>→</i><div>Blind evaluator (required)</div><i>→</i><div>Merge</div></div>
+<p>Failures go asynchronously to <b>triage</b>, which opens patch PRs or files bug reports. Weekly, the <b>improver</b> proposes harness changes behind the held-out gate.</p>
+
+<h2 id="g-roles">3. Agent roles &amp; permissions</h2>
+<p>Every LLM role ends in a <b>pull request or a structured artifact</b>, never in a direct state change. Every role has an <b>escalate</b> action.</p>
+<table>
+<tr><th>Role</th><th>Inputs</th><th>Outputs</th><th>May write</th><th>Must never touch</th><th>Effort</th></tr>
+<tr><td><b>Initializer</b></td><td>Requirements bundle, <code>aut_start.sh</code>, seed test</td><td>JSON test inventory (all <code>status: "failing"</code>), progress log, initial commit</td><td>Inventory skeleton</td><td>—</td><td>High</td></tr>
+<tr><td><b>Planner</b></td><td>EARS acceptance criteria, journeys, OpenAPI, app model, playbook</td><td><code>specs/REQ-*.md</code> plus a test contract (flows and assertions that define done)</td><td><code>specs/</code></td><td>Assertions in <code>tests/</code></td><td>High</td></tr>
+<tr><td><b>Generator</b></td><td>One spec, skills/page objects, live preview</td><td>Playwright tests with live-verified locators</td><td>New files in <code>tests/</code> via PR</td><td>Existing assertions; inventory beyond <code>status</code></td><td>Medium</td></tr>
+<tr><td><b>Executor</b></td><td>Committed tests, preview URL</td><td>passed / flaky / failed results, traces</td><td>Evidence plane</td><td>Everything else. <b>No LLM.</b></td><td>—</td></tr>
+<tr><td><b>Triage / Healer</b></td><td>Failing test, trace, app logs</td><td>Classification (AUT bug, environment, flake, locator drift, wrong assertion) plus a patch PR or a bug report</td><td>Locators, waits, fixtures via PR</td><td>Assertions, <code>test.skip</code>/<code>fixme</code>, timeouts beyond policy</td><td>Medium</td></tr>
+<tr><td><b>Explorer</b> (nightly)</td><td>App model, playbook</td><td>State-graph updates, candidate bug reports</td><td>Episodic memory, app model</td><td>Gating suite</td><td>Medium</td></tr>
+<tr><td><b>Blind evaluator</b></td><td>Requirements bundle and preview URL only</td><td>Per-requirement verdict with evidence</td><td>Its own private corpus</td><td>Code, diff, builder tests, builder transcripts</td><td>High</td></tr>
+<tr><td><b>Improver</b> (weekly)</td><td>Traces, labels, failure taxonomy</td><td>One harness change per PR</td><td>Harness repo via PR</td><td>Sealed plane, held-out split</td><td>High</td></tr>
+<tr><td><b>Gardener</b> (scheduled)</td><td>Suite health metrics</td><td>PRs removing duplicate, flaky or stale tests</td><td><code>tests/</code> via PR</td><td>Assertions on live requirements</td><td>Low</td></tr>
+</table>
+<p>Use a reasoning-effort "sandwich": high effort for planning and judging, lower for generation. LangChain reported 66.5% with this pattern against 63.6% with high effort throughout. <span class="lbl vc">VENDOR</span></p>
+
+<h2 id="g-repo">4. Repository layout</h2>
+<pre><code>qa-harness/
+├─ AGENTS.md                  <span class="c"># ~100-line map; links into docs/ (re-injected every turn)</span>
+├─ docs/                      <span class="c"># golden principles, conventions, locator policy</span>
+├─ requirements/
+│  ├─ REQ-142.md              <span class="c"># EARS acceptance criteria, journey, in/out of scope</span>
+│  └─ openapi/orders.yaml     <span class="c"># new / changed API contracts</span>
+├─ inventory/tests.json       <span class="c"># requirement-ID → tests; only "status" is mutable</span>
+├─ specs/                     <span class="c"># planner output (Markdown test plans)</span>
+├─ tests/                     <span class="c"># Playwright *.spec.ts, tagged @REQ-xxx</span>
+├─ skills/                    <span class="c"># login, navigation, page objects, data factories</span>
+├─ memory/
+│  ├─ app-model.json          <span class="c"># routes, states, roles, state graph</span>
+│  ├─ playbook.md             <span class="c"># itemised bullets: id, hits/misses, provenance</span>
+│  └─ failures.jsonl          <span class="c"># failure-taxonomy log (reflective memory)</span>
+├─ harness/
+│  ├─ orchestrator/           <span class="c"># control plane: budgets, routing, registry</span>
+│  ├─ hooks/                  <span class="c"># protect-oracle.sh, heal-diff-check.mjs</span>
+│  └─ agents/                 <span class="c"># role prompts + tool allow-lists</span>
+├─ playwright.config.ts
+└─ .github/workflows/qa.yml
+
+sealed-acceptance/            <span class="c"># SEPARATE repo, separate credentials, human-owned</span>
+├─ evaluator/                 <span class="c"># prompts, private corpus of derived tests</span>
+├─ seeded-faults/             <span class="c"># fault-injection build catalogue</span>
+├─ impossible/                <span class="c"># canary builds that must never pass</span>
+├─ injection-fixtures/        <span class="c"># adversarial page content</span>
+└─ labels/                    <span class="c"># expert pass/fail labels, train / dev / test splits</span></code></pre>
+<p>Test inventory entry. Agents may change only <code>status</code>. JSON was chosen because models wrongly edit it less often than Markdown. <span class="lbl vc">VENDOR</span></p>
+<pre><code>{
+  "id": "T-0142-01",
+  "requirement_id": "REQ-142",
+  "journey": "Checkout with expired saved card",
+  "criterion": "WHEN the saved card is expired THE SYSTEM SHALL block payment and show 'Update card'",
+  "spec": "specs/REQ-142.md",
+  "test": "tests/checkout/expired-card.spec.ts",
+  "status": "failing"
+}</code></pre>
+
+<h2 id="g-memory">5. Memory &amp; skills</h2>
+<p>The memory layout maps MemoDroid's three memory layers (ASE 2025) and ACE's curation discipline (ICLR 2026) onto files. All five are versioned in git.</p>
+<table>
+<tr><th>Artifact</th><th>Memory type</th><th>Contents</th><th>Update rule</th></tr>
+<tr><td><code>memory/app-model.json</code></td><td>Strategic</td><td>Routes, UI states, roles, state graph</td><td>Refreshed between runs by diffing the app ("sleep-time" step)</td></tr>
+<tr><td><code>skills/</code></td><td>Procedural</td><td>Executable helpers: login via <code>storageState</code>, navigation, page objects, data factories</td><td>Code-reviewed PRs; loaded progressively (frontmatter first, body on demand)</td></tr>
+<tr><td><code>memory/playbook.md</code></td><td>Reflective</td><td>Itemised lessons with IDs, hit/miss counters and links to the trace that taught them</td><td><b>Append and curate; never rewrite the whole file.</b> Whole-file rewrites erode detail (ACE's "context collapse")</td></tr>
+<tr><td><code>memory/failures.jsonl</code></td><td>Episodic</td><td>Each classified failure, its root cause, and the guide or sensor it produced</td><td>Append-only</td></tr>
+<tr><td><code>sealed-acceptance/*</code></td><td>Frozen eval</td><td>Seeded faults, impossible builds, injection fixtures, labels</td><td>Humans only</td></tr>
+</table>
+<p>Example playbook bullet:</p>
+<pre><code>- [PB-031] Date pickers on /booking read the system clock. Use page.clock.setFixedTime()
+  before navigation, or the "next available" slot drifts.  hits: 7  misses: 0
+  provenance: trace runs/2026-11-12/T-0088-02  added-by: improver PR #412  approved-by: QA lead</code></pre>
+
+<h2 id="g-tests">6. Authoring &amp; admission</h2>
+<h3>Bootstrap Playwright's agents</h3>
+<p>Playwright 1.56+ ships planner, generator and healer agent definitions. The planner explores from a seed test and an optional PRD and writes <code>specs/</code>. The generator writes <code>tests/</code>, verifying locators live. <span class="lbl v">VERIFIED</span></p>
+<pre><code>npm i -D @playwright/test@1.64.1
+npx playwright install --with-deps
+npx playwright init-agents        <span class="c"># adds planner / generator / healer definitions + seed test; see `--help` for your agent loop</span></code></pre>
+<p>Tag every test with its requirement ID so the traceability matrix builds itself:</p>
+<pre><code>import { test, expect } from '@playwright/test';
+
+test('blocks checkout when saved card is expired', { tag: ['@REQ-142'] }, async ({ page }) =&gt; {
+  await page.clock.setFixedTime(new Date('2026-01-15T10:00:00Z'));
+  await page.goto('/checkout');
+  await page.getByRole('button', { name: 'Pay now' }).click();
+  await expect(page.getByRole('alert')).toHaveText(/update card/i);
+  await expect(page).toHaveURL(/\/checkout$/);   <span class="c">// payment did not proceed</span>
+});</code></pre>
+<h3>Admission filters (Meta-style "assured improvement")</h3>
+<p>A generated test merges only if it passes all four filters:</p>
+<ol class="check">
+  <li>It compiles and passes lint, including a custom rule banning <code>waitForTimeout</code>.</li>
+  <li>It passes <b>k consecutive runs</b> on a healthy build (pass^k, k ≥ 5).</li>
+  <li>It covers a requirement ID not yet covered, <b>or</b> catches a seeded fault the suite previously missed.</li>
+  <li>A human reviews it (Phase 1). After calibration, reviews move to sampled spot-checks.</li>
+</ol>
+<p>Reference point: Meta's TestGen-LLM had 75% of candidates build, 57% pass reliably and 25% add coverage. Treat these as benchmarks, not targets. <span class="lbl v">VERIFIED</span></p>
+<p>Cache generated tests keyed on a hash of requirement text, seed test and Playwright version. Regenerate only when one of those changes. The LLM stays out of the hot path.</p>
+
+<h2 id="g-guard">7. Guardrails (with code)</h2>
+<div class="callout"><p><b>Why.</b> In ImpossibleBench, Claude models mostly cheated by modifying test cases. Read-only tests blocked that without hurting legitimate performance. Retry and feedback loops <i>raised</i> cheating from 33% to 38%. LLM monitors caught only 42–65% of cheating. Guardrails must therefore be mechanical first and inferential second.</p></div>
+<h3>7.1 Protect the oracle with a PreToolUse hook</h3>
+<p>For Claude Agent SDK / Claude Code-based agents, register a hook that blocks writes to protected paths. Exit code 2 blocks the tool call and returns the message to the agent.</p>
+<pre><code><span class="c">// .claude/settings.json (agent sandbox)</span>
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Edit|Write|MultiEdit",
+        "hooks": [ { "type": "command", "command": "harness/hooks/protect-oracle.sh" } ] }
+    ]
+  }
+}</code></pre>
+<pre><code>#!/usr/bin/env bash
+<span class="c"># harness/hooks/protect-oracle.sh — block edits to the protected test oracle</span>
+input="$(cat)"
+path="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')"
+case "$path" in
+  *sealed-acceptance/*|*/inventory/*|*/playwright.config.ts|*/.github/*|*/harness/hooks/*)
+    echo "Blocked: '$path' is part of the protected test oracle. Use the escalate tool instead." &gt;&amp;2
+    exit 2 ;;
+esac
+exit 0</code></pre>
+<p>Hooks protect the agent's own session. A CI path filter enforces the same rules on every PR, whoever wrote it.</p>
+<h3>7.2 Heal-diff checker (required CI check on agent PRs)</h3>
+<p>This check is deliberately conservative: any hit routes the PR to a human rather than failing silently.</p>
+<pre><code><span class="c">// harness/hooks/heal-diff-check.mjs</span>
+import { execSync } from 'node:child_process';
+const base = process.env.BASE_REF || 'origin/main';
+const sh = (c) =&gt; execSync(c, { encoding: 'utf8' });
+const diff = sh(`git diff --unified=0 ${base}...HEAD -- tests/`);
+const problems = [];
+for (const line of diff.split('\n')) {
+  const removed = line.startsWith('-') &amp;&amp; !line.startsWith('---');
+  const added   = line.startsWith('+') &amp;&amp; !line.startsWith('+++');
+  if (removed &amp;&amp; /\bexpect\(/.test(line)) problems.push(`assertion removed/changed: ${line.slice(1).trim()}`);
+  if (added &amp;&amp; /\btest(\.describe)?\.(skip|fixme)\b|\.skip\(/.test(line)) problems.push(`skip/fixme added: ${line.slice(1).trim()}`);
+  const t = added &amp;&amp; line.match(/timeout:\s*(\d+)/);
+  if (t &amp;&amp; Number(t[1]) &gt; 15000) problems.push(`timeout above policy: ${t[1]}ms`);
+  if (added &amp;&amp; /\bwaitForTimeout\(/.test(line)) problems.push('hard wait added');
+}
+const files = sh(`git diff --name-only ${base}...HEAD`).split('\n');
+if (files.some((f) =&gt; /-snapshots\//.test(f))) problems.push('visual baseline changed');
+if (files.some((f) =&gt; f.startsWith('inventory/'))) problems.push('inventory edited (only status may change; verify)');
+if (problems.length) {
+  console.error('Needs human review:\n- ' + problems.join('\n- '));
+  process.exit(1);
+}</code></pre>
+<h3>7.3 Policy summary</h3>
+<table>
+<tr><th>Guardrail</th><th>Mechanism</th><th>Evidence</th></tr>
+<tr><td>Assertions and inventory read-only</td><td>PreToolUse hook + CI path filter + CODEOWNERS</td><td>ImpossibleBench <span class="lbl v">VERIFIED</span></td></tr>
+<tr><td>Weakening routes to a human</td><td>Heal-diff checker as a required check</td><td>False-heal study <span class="lbl vc">ONE STUDY</span></td></tr>
+<tr><td>Skips count as failures</td><td>Result parser maps <code>skipped</code> to fail / needs review</td><td>Playwright healer skips when it thinks a feature is broken <span class="lbl v">VERIFIED</span></td></tr>
+<tr><td>Retry and heal caps</td><td>Orchestrator: at most 2 heal attempts per test per PR; Coder–evaluator iterations capped per requirement</td><td>Feedback raised cheating 33%→38% <span class="lbl v">VERIFIED</span></td></tr>
+<tr><td>Cheap escalation</td><td><code>report_bug</code>, <code>escalate</code>, <code>unknown</code> tools on every role</td><td>Abort cut cheating 54%→9% <span class="lbl v">VERIFIED</span></td></tr>
+<tr><td>Integrity canary</td><td>Scheduled runs on seeded and impossible builds; any green is a page-out</td><td><span class="lbl i">INFERENCE</span></td></tr>
+<tr><td>Approval-gated baselines</td><td>Visual baseline accept requires approval (Applitools MCP enforces this for reset and save)</td><td><span class="lbl v">VERIFIED</span></td></tr>
+<tr><td>Budget exhaustion</td><td>Token, cost and wall-clock caps (<code>max_turns</code>, <code>max_budget_usd</code>). When exhausted the result is "needs human review", never a pass</td><td>Agent SDK <span class="lbl v">VERIFIED</span></td></tr>
+<tr><td>Ablation on model upgrades</td><td>Remove harness components one at a time; keep those still load-bearing</td><td>Anthropic <span class="lbl vc">VENDOR</span></td></tr>
+</table>
+
+<h2 id="g-eval">8. The blind evaluator</h2>
+<p>The blind evaluator is the core of the sealed plane and the last required gate before merge. It verifies behaviour purely from the requirement, never from code. EARS criteria ("WHEN … THE SYSTEM SHALL …", as Kiro uses) map cleanly to test cases, and Spec Kit treats the spec as "a contract".</p>
+<h3>8.1 Inputs and isolation</h3>
+<ul>
+  <li><b>Receives:</b> acceptance criteria, business journey, in-scope and out-of-scope list, new or changed API contracts, and the preview URL.</li>
+  <li><b>Never receives:</b> code, diffs, builder tests, builder transcripts or Critic/Judge output.</li>
+  <li>Runs in a fresh ephemeral environment from the sealed repo, with its own credentials and a <b>different model family</b> from the builder agents.</li>
+  <li>Kept separate from the Critic/Judge, which sees code. Neither feeds the other's context.</li>
+</ul>
+<h3>8.2 Derive private, deterministic tests</h3>
+<p>The evaluator runs its own planner and generator inside the sealed corpus, so each verdict is backed by replayable Playwright code tagged with requirement IDs. This takes the LLM out of the verdict itself, and gives you the traceability matrix. For API contracts it adds Specmatic contract and resiliency tests plus Schemathesis fuzzing against the preview.</p>
+<h3>8.3 Verdict schema</h3>
+<pre><code>{
+  "requirement_id": "REQ-142",
+  "verdict": "fail",
+  "criterion": "WHEN the saved card is expired THE SYSTEM SHALL block payment and show 'Update card'",
+  "observed": "Payment submitted; order confirmation page shown",
+  "expected": "Payment blocked; alert 'Update card' visible",
+  "evidence": { "trace": "evidence/run-8812/trace.zip", "screenshot": "evidence/run-8812/fail.png" },
+  "attempt": 1,
+  "evaluator_version": "eval-2026.11.3",
+  "model_family": "different-from-builders"
+}</code></pre>
+<p><code>verdict</code> takes one of four values: <code>pass</code>, <code>fail</code>, <code>unknown</code> or <code>could_not_verify</code>. The last two, and any healer skip, escalate to a human. The Coder receives only requirement ID, observed, expected and evidence, <b>never the evaluator's test code</b>.</p>
+<h3>8.4 Calibration procedure</h3>
+<ol>
+  <li>Collect 20–50 tasks from real failures and journeys. Include negative cases, where a behaviour should <i>not</i> happen.</li>
+  <li>A principal domain expert gives a binary pass/fail plus a written critique ("critique shadowing"). Use a second expert to check agreement.</li>
+  <li>Split the labels about 10–20% train, 40–45% dev and 40–45% test.</li>
+  <li>Iterate the evaluator's prompts and skills on train and dev only.</li>
+  <li>Report <b>TPR</b> (seeded faults caught) and <b>TNR</b> (healthy builds passed) <b>separately</b> on the test split.</li>
+  <li>Re-run calibration on every model or prompt change. Track pass^k on healthy builds as the false-alarm KPI.</li>
+</ol>
+<h3>8.5 The evaluator's own improvement</h3>
+<p>The evaluator may improve its playbook and skills on <b>training</b> builds only. Its seeded-fault catalogue, impossible builds and labels are owned by humans and never visible to it during optimisation. The evaluator is in turn checked by the integrity canary plus a weekly human trace sample.</p>
+
+<h2 id="g-loop">9. Self-improvement loop</h2>
+<h3>Inner loop (per PR, minutes)</h3>
+<p>The planner and generator author tests, admission filters gate them, the executor runs them, and triage proposes patches. This loop maintains the regression suite.</p>
+<h3>Outer loop (weekly, offline)</h3>
+<ol>
+  <li><b>Sample</b> traces from the evidence plane: failures, heals, escalations, and slow or expensive runs.</li>
+  <li><b>Error analysis:</b> a separate trace-analysis agent clusters failures, and a human spot-checks the clusters.</li>
+  <li><b>Classify</b> each recurring failure in the failure taxonomy.</li>
+  <li><b>Convert</b> each recurring class into a <b>guide</b> (playbook bullet, skill fix, tool-description edit) or a <b>sensor</b> (lint rule, hook, structural test whose error message carries the remedy, as OpenAI does).</li>
+  <li><b>Score</b> the change on the <b>optimisation split</b> of AUT builds.</li>
+  <li><b>Accept</b> only if the <b>held-out split does not regress</b> (TPR up or flat, TNR flat) and a human approves. One change per PR.</li>
+</ol>
+<p>Prompt evolution (GEPA, ICLR 2026) and code self-modification (Darwin Gödel Machine) belong only in the outer loop, behind the same gate. DGM bypassed its own hallucination detector by removing the logging the detector depended on. Auditable lineage and rollback are mandatory. <span class="lbl v">VERIFIED</span></p>
+
+<h2 id="g-stack">10. Complementary stack</h2>
+<table>
+<tr><th>Gap</th><th>Tool</th><th>Agent interface</th><th>Caveat</th></tr>
+<tr><td>Black-box API contracts from requirements</td><td><b>Specmatic</b> (contract, resiliency, mocks, backward-compatibility)</td><td>MCP (MIT), Docker/npm</td><td>Backward-compatibility check is npm-only</td></tr>
+<tr><td>API edge cases, 5xx errors</td><td><b>Schemathesis</b> (stateful, property-based)</td><td>CLI, JUnit/JSON output</td><td>Very active (4.32.x); no MCP</td></tr>
+<tr><td>Inter-service compatibility</td><td><b>Pact</b> / Swagger Contract Testing (can-i-deploy)</td><td>SmartBear MCP + skill</td><td>Consumer-driven, so it is not the requirements oracle. Avoid Dredd (archived).</td></tr>
+<tr><td>Accessibility</td><td><code>@axe-core/playwright</code> + keyboard/focus scripts + <code>toMatchAriaSnapshot</code></td><td>Library</td><td>Catches about 57% of issues by volume (Deque <span class="lbl vc">VENDOR</span>). Keep a manual checklist.</td></tr>
+<tr><td>Visual regression</td><td><code>toHaveScreenshot</code> in a pinned Docker image; <b>Applitools</b> for cross-browser</td><td>Applitools MCP 0.5.x</td><td>Pixel baselines vary by OS; approvals required</td></tr>
+<tr><td>Front-end performance</td><td><b>Chrome DevTools MCP</b> (traces, CrUX)</td><td>MCP / CLI</td><td>Chrome-only; disable usage stats</td></tr>
+<tr><td>Load</td><td><b>k6</b> via <code>grafana/mcp-k6</code></td><td>MCP</td><td>Experimental; 5-minute run cap; remote mode has no auth, so run it locally over stdio</td></tr>
+<tr><td>Native mobile</td><td><b>Maestro</b> (YAML flows) or <b>Appium</b></td><td><code>maestro mcp</code>; <code>appium/mcp-appium</code></td><td>Appium MCP needs Node 22+</td></tr>
+<tr><td>Sandboxes and mocks</td><td><b>Signadot</b>; Microcks or Specmatic mocks</td><td>MCP</td><td>Signadot needs an account and CLI 1.4.0+</td></tr>
+<tr><td>Canvas / non-DOM UIs</td><td>Playwright MCP <code>--caps=vision</code></td><td>MCP</td><td>Coordinate clicks are less stable; use sparingly</td></tr>
+</table>
+<p>Run every MCP server locally over stdio with scoped credentials, and treat MCP as a convenience layer over the stable CLIs, since several servers are pre-1.0. Where you can't mutate AUT code, "mutation testing" means <b>fault injection</b>: Specmatic resiliency tests, mocks returning errors, <code>page.route</code> failures. Use StrykerJS only where you own the code. <span class="lbl i">INFERENCE</span></p>
+<div class="callout teal"><p><b>MCP or CLI?</b> One measurement found about 114K tokens per test via Playwright MCP against about 27K via the CLI. <span class="lbl vc">VENDOR</span> Use the CLI as a skill for generation, and MCP for stateful exploration and triage.</p></div>
+
+<h2 id="g-ci">11. CI &amp; environments</h2>
+<h3>Pipeline stages</h3>
+<ol>
+  <li>Provision a per-PR preview: dedicated seeded database, preview-only test keys, a TTL, and a health-poll before E2E.</li>
+  <li>Run the deterministic suite as a <b>required check</b>.</li>
+  <li>Run the blind evaluator against the requirements bundle as a <b>required check</b> for in-scope requirement IDs.</li>
+  <li>Run async LLM triage on failures, outside the required check, producing patch PRs or bug labels.</li>
+  <li>Nightly: run exploration and the integrity-canary builds.</li>
+  <li>Tear the preview down.</li>
+</ol>
+<h3>playwright.config.ts</h3>
+<pre><code>import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,          <span class="c">// retries CLASSIFY flaky tests; flaky is never counted green</span>
+  workers: process.env.CI ? 1 : undefined,  <span class="c">// one worker per job; scale with --shard</span>
+  globalTimeout: 25 * 60_000,               <span class="c">// below the CI job timeout</span>
+  reporter: [['html', { open: 'never' }], ['json', { outputFile: 'results.json' }], ['junit', { outputFile: 'junit.xml' }]],
+  use: {
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+});</code></pre>
+<h3>Determinism</h3>
+<pre><code>test.beforeEach(async ({ page }) =&gt; {
+  await page.clock.setFixedTime(new Date('2026-01-15T10:00:00Z'));           <span class="c">// fixed clock</span>
+  await page.routeFromHAR('fixtures/third-party.har', { url: '**/api.partner.com/**' }); <span class="c">// replay third parties</span>
+});</code></pre>
+<h3>.github/workflows/qa.yml (sketch)</h3>
+<pre><code>name: qa
+on: pull_request
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: deploy
+        run: ./harness/env/create-preview.sh   <span class="c"># seeded DB, test keys, TTL, health-poll</span>
+
+  e2e:
+    needs: preview
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npx playwright test --shard=${{ matrix.shard }}/4
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: ${{ needs.preview.outputs.url }}
+      - run: node harness/ci/fail-on-skip-or-flaky.mjs results.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: report-${{ matrix.shard }}
+          path: playwright-report/
+
+  heal-diff:
+    if: contains(github.event.pull_request.labels.*.name, 'agent-authored')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: node harness/hooks/heal-diff-check.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+
+  blind-evaluator:
+    needs: preview
+    runs-on: ubuntu-latest
+    steps:
+      <span class="c"># runs from the sealed repo with its own token; receives requirements bundle + URL only</span>
+      - run: ./sealed/run-evaluator.sh --requirements requirements/ --url "${{ needs.preview.outputs.url }}"</code></pre>
+<p>Don't cache browsers; use the official image. <code>--only-changed</code> is a fail-fast pre-pass only, because it can miss tests.</p>
+
+<h2 id="g-obs">12. Observability</h2>
+<ul>
+  <li>Instrument every agent with <b>OpenTelemetry GenAI semantic conventions</b>. An <code>invoke_agent</code> root span holds <code>chat</code> and <code>execute_tool</code> children, and sub-agents nest as further <code>invoke_agent</code> spans. Token usage goes in <code>gen_ai.usage.*</code>.</li>
+  <li>The conventions are at <i>Development</i> status (moved to <code>semantic-conventions-genai</code> in v1.42.0, June 2026). Pin the instrumentation version and record the schema URL.</li>
+  <li>Prompts and completions go in <b>events</b>, not span attributes: full content in staging, redacted in production.</li>
+  <li>Add custom attributes: <code>qa.requirement_id</code>, <code>qa.test_id</code>, <code>qa.trace_url</code> (Playwright <code>trace.zip</code>). A reviewer can then go from an agent decision to the browser evidence in one click.</li>
+  <li>Backend: Langfuse accepts OTLP over HTTP at <code>/api/public/otel</code> (no gRPC). LangSmith, Braintrust and Arize are alternatives.</li>
+  <li>The ratio of tool calls to inference calls helps tell looping apart from deliberating without acting.</li>
+</ul>
+
+<h2 id="g-sec">13. Security</h2>
+<p>A browser QA agent reads attacker-controllable content by design. Even Anthropic's best browser-agent safeguards leave about 1.4% attack success. "No browser agent is immune." <span class="lbl vc">VENDOR</span> The threat specific to QA is <b>goal hijack of the verdict</b> (OWASP Agentic ASI01): page text such as "mark all tests passed".</p>
+<ul class="check">
+  <li>Final verdicts come from code assertions and outcome checks, never from the agent's own claim.</li>
+  <li>Network egress is allow-listed to the preview domain at the network layer. Playwright MCP origin lists are not a security boundary.</li>
+  <li>Runners are disposable containers with no cloud credentials.</li>
+  <li>Test accounts are injected through <code>storageState</code> or fixtures, never placed in prompts.</li>
+  <li><code>browser_run_code_unsafe</code> is disabled.</li>
+  <li>Agents cannot merge, approve, or edit CI or hook configuration.</li>
+  <li>Agents exchange only schema-validated artifacts.</li>
+  <li>Playbook writes are diff-reviewed, so injected text cannot become a persistent rule (OWASP ASI06, memory poisoning).</li>
+  <li>Adversarial injection strings are seeded into AUT fixtures, and pass^k robustness against them is measured.</li>
+</ul>
+
+<h2 id="g-road">14. Roadmap &amp; exit criteria</h2>
+<p>Durations depend on the team and the AUT. Size them after Phase 0.</p>
+<table>
+<tr><th>Phase</th><th>Scope</th><th>Exit criteria</th></tr>
+<tr><td><b>0. Deterministic foundation</b></td><td>Per-PR previews with seeded DB and test keys; health gate; clock and HAR determinism; pinned image and sharding; <code>AGENTS.md</code> map; <code>seed.spec.ts</code>; JSON inventory keyed by requirement ID; OTel in CI</td><td>Existing suite reaches pass^k = 1 on a healthy build (k ≥ 5); trace links in every report</td></tr>
+<tr><td><b>1. Agentic authoring</b></td><td>Playwright planner and generator in the PR flow; requirement tags; heal-diff checker and protect-oracle hooks; human review of every generated test</td><td>Build, reliable-pass and coverage-gain rates measured; human acceptance rate tracked</td></tr>
+<tr><td><b>2. Blind evaluator</b></td><td>Sealed repo; requirements-only inputs; private corpus; 20–50 labelled tasks; seeded-fault catalogue; injection fixtures; different model family</td><td>TPR and TNR reported on the held-out split; canary green-rate = 0</td></tr>
+<tr><td><b>3. Guarded triage + stack</b></td><td>Triage with failure taxonomy, retry caps and <code>report_bug</code>; Specmatic and Schemathesis; axe plus manual checklist; approval-gated visual baselines; k6 smoke</td><td>False-heal rate measured on a labelled sample; skip count trending to zero</td></tr>
+<tr><td><b>4. Outer improvement loop</b></td><td>Episodic, reflective and strategic memory with ACE-style curation; improver (one change per PR) against optimisation and holdout builds; gardener</td><td>Held-out detection improves without TNR regression across consecutive cycles</td></tr>
+<tr><td><b>5. Expansion &amp; ablation</b></td><td>Nightly explorer (pass@k bug hunting); Maestro or Appium; GEPA-style prompt optimisation; ablation on each model upgrade</td><td>Confirmed new bugs per month; harness complexity justified by ablation</td></tr>
+</table>
+
+<h2 id="g-metrics">15. Scorecard</h2>
+<p>Only <b>held-out</b> numbers decide whether a self-improvement change ships.</p>
+<table>
+<tr><th>Layer</th><th>Metric</th><th>Definition</th><th>Starting threshold <span class="lbl i">INFERENCE</span></th></tr>
+<tr><td>Gate</td><td>Admission</td><td>Builds; pass^k on a healthy build; covers a new requirement or kills a seeded fault</td><td>k ≥ 5, all must pass</td></tr>
+<tr><td>Objective</td><td><b>Seeded-fault TPR</b></td><td>Planted faults detected ÷ planted faults, on held-out builds</td><td>Baseline in Phase 2, then must not drop</td></tr>
+<tr><td>Objective</td><td>Requirement coverage</td><td>In-scope requirement IDs with at least one passing, admitted test</td><td>100% of new requirement IDs</td></tr>
+<tr><td>Integrity</td><td>False-alarm rate</td><td>1 − TNR on healthy builds</td><td>&lt; 2% to gate merges</td></tr>
+<tr><td>Integrity</td><td>False-heal rate</td><td>Heals that changed what the test checks, from a labelled sample</td><td>Measure; route all heals to review until &lt; 5%</td></tr>
+<tr><td>Integrity</td><td>Canary green-rate</td><td>Impossible or seeded builds reported green</td><td><b>0, always</b></td></tr>
+<tr><td>Integrity</td><td>Skip / fixme count</td><td>Skipped or fixme tests in the gating suite</td><td>Trending to 0</td></tr>
+<tr><td>Human</td><td>Acceptance rate</td><td>Agent PRs and bug reports accepted by humans</td><td>Meta's 73% as a reference</td></tr>
+<tr><td>Efficiency</td><td>Cost and latency</td><td>Tokens, $ and wall-clock per PR; steps per successful flow</td><td>Hard per-PR cap set in Phase 0</td></tr>
+</table>
+
+<h2 id="g-open">16. Open decisions</h2>
+<table>
+<tr><th>Decision</th><th>Why it matters</th><th>Default if undecided</th></tr>
+<tr><td>Is the API contract frozen before implementation starts?</td><td>The evaluator's contract tests are only a fair oracle if the contract is fixed before the Coder builds.</td><td>Freeze OpenAPI at requirements sign-off; changes need a new requirement version</td></tr>
+<tr><td>Which pilot application?</td><td>It needs written acceptance criteria and a deployable preview.</td><td>The service with the clearest ACs and an existing E2E suite</td></tr>
+<tr><td>Which model family for the evaluator?</td><td>Hedges against self-preference bias.</td><td>A different provider or family from the builder agents</td></tr>
+<tr><td>Who owns the sealed repo?</td><td>Humans must own labels and seeded faults.</td><td>QA lead plus one domain expert; separate CODEOWNERS</td></tr>
+<tr><td>Observability backend?</td><td>Trace review drives the outer loop.</td><td>Langfuse via OTLP/HTTP</td></tr>
+</table>
+
+<h2 id="g-src">17. Sources</h2>
+<ul>
+  <li>Anthropic: <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Harness design for long-running apps</a> · <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Effective harnesses for long-running agents</a> · <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Demystifying evals for AI agents</a> · <a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Writing tools for agents</a> · <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering</a> · <a href="https://anthropic.com/research/prompt-injection-defenses">Prompt-injection defenses</a> · <a href="https://code.claude.com/docs/en/agent-sdk/agent-loop">Agent SDK: agent loop</a></li>
+  <li>Harness engineering: <a href="https://www.martinfowler.com/articles/harness-engineering.html">martinfowler.com</a> · <a href="https://openai.com/index/harness-engineering/">OpenAI</a> · <a href="https://www.langchain.com/blog/improving-deep-agents-with-harness-engineering">LangChain: improving deep agents</a> · <a href="https://www.langchain.com/blog/better-harness-a-recipe-for-harness-hill-climbing-with-evals">LangChain: Better Harness</a> · <a href="https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus">Manus: context engineering</a></li>
+  <li>Playwright: <a href="https://playwright.dev/docs/test-agents">Test agents</a> · <a href="https://github.com/microsoft/playwright/releases">Releases</a> · <a href="https://playwright.dev/docs/ci">CI</a> · <a href="https://playwright.dev/docs/clock">Clock</a> · <a href="https://playwright.dev/docs/mock">Mock APIs</a> · <a href="https://playwright.dev/docs/test-retries">Retries</a> · <a href="https://playwright.dev/docs/accessibility-testing">Accessibility</a> · <a href="https://playwright.dev/docs/test-snapshots">Visual comparisons</a> · <a href="https://cdn.jsdelivr.net/gh/microsoft/playwright-mcp@main/README.md">Playwright MCP README</a> · <a href="https://currents.dev/posts/state-of-playwright-ai-ecosystem-in-2026">Currents: Playwright AI ecosystem 2026</a> · <a href="https://sdtimes.com/?p=61093">SD Times: false heals</a></li>
+  <li>Research: <a href="https://arxiv.org/html/2510.20270v1">ImpossibleBench</a> · <a href="https://arxiv.org/abs/2505.22954">Darwin Gödel Machine</a> · <a href="https://arxiv.org/abs/2510.04618">ACE</a> · <a href="https://arxiv.org/abs/2507.19457">GEPA</a> · <a href="https://arxiv.org/abs/2409.07429">Agent Workflow Memory</a> · <a href="https://arxiv.org/abs/2504.13171">Sleep-time compute</a> · <a href="https://arxiv.org/abs/2402.09171">Meta TestGen-LLM</a> · <a href="https://arxiv.org/abs/2501.12862">Meta ACH</a> · <a href="https://conf.researchr.org/details/ase-2025/ase-2025-papers/62/Beyond-Static-GUI-Agent-Evolving-LLM-based-GUI-Testing-via-Dynamic-Memory">MemoDroid (ASE 2025)</a> · <a href="https://arxiv.org/abs/2311.08649v1">DroidAgent</a> · <a href="https://arxiv.org/html/2504.01382v4">Online-Mind2Web</a></li>
+  <li>Evals: <a href="https://hamel.dev/blog/posts/llm-judge/">Hamel Husain: LLM judge</a> · <a href="https://hamel.dev/blog/posts/evals-faq/">Evals FAQ</a> · <a href="https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/">GitHub Spec Kit</a> · <a href="https://kiro.dev/docs/specs/concepts">Kiro specs</a></li>
+  <li>Ops and security: <a href="https://render.com/articles/preview-environments-as-agent-sandboxes">Render preview environments</a> · <a href="https://www.dash0.com/knowledge/opentelemetry-genai-semantic-conventions-explained">OTel GenAI conventions (Dash0)</a> · <a href="https://langfuse.com/integrations/native/opentelemetry">Langfuse OTel</a> · <a href="https://www.humansecurity.com/learn/blog/owasp-top-10-agentic-applications/">OWASP Agentic Top 10 (summary)</a></li>
+  <li>Stack: <a href="https://glama.ai/mcp/servers/specmatic/specmatic-mcp-server">Specmatic MCP</a> · <a href="https://github.com/schemathesis/schemathesis/releases">Schemathesis</a> · <a href="https://smartbear.com/blog/practice-what-you-pact-catch-breaking-api-changes-before-production-in-the-smartbear-mcp/">SmartBear / Pact MCP</a> · <a href="https://raw.githubusercontent.com/grafana/mcp-k6/main/README.md">mcp-k6</a> · <a href="https://github.com/appium/mcp-appium">Appium MCP</a> · <a href="https://maestro.dev/mcp">Maestro MCP</a> · <a href="https://applitools.com/docs/eyes/integrations/mcp-servers/applitools-mcp">Applitools MCP</a> · <a href="https://www.signadot.com/docs/integrations/mcp">Signadot MCP</a> · <a href="https://www.deque.com/blog/automated-testing-study-identifies-57-percent-of-digital-accessibility-issues">Deque 57% study</a></li>
+</ul>
+<p class="gfoot">Prepared November 2026 from the project research report "Self improving Playwright test agents". Code samples are starting points: verify flags and versions against current docs before adopting them.</p>
+</article>
+</div>
+</div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('#deck .slide')];
+  const prog=document.getElementById('prog'), ctr=document.getElementById('ctr');
+  const notes=document.getElementById('notes'), ntext=document.getElementById('ntext');
+  let i=0;
+  const fromHash=parseInt((location.hash.match(/slide-(\d+)/)||[])[1],10);
+  if(fromHash>0&&fromHash<=slides.length) i=fromHash-1;
+
+  function animateCounts(s){
+    s.querySelectorAll('.count').forEach(el=>{
+      const to=+el.dataset.to, start=performance.now(), dur=1400;
+      const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(reduce){el.textContent=to;return;}
+      el.textContent='0';
+      (function tick(t){const p=Math.min(1,(t-start)/dur);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick);})(start);
+    });
+  }
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>{s.classList.toggle('active',k===i);s.classList.toggle('past',k<i);s.inert=(k!==i);if(k!==i)s.setAttribute('aria-hidden','true');else s.removeAttribute('aria-hidden');});
+    prog.style.width=((i+1)/slides.length*100)+'%';
+    ctr.textContent=(i+1)+' / '+slides.length;
+    ntext.textContent=slides[i].dataset.notes||'';
+    animateCounts(slides[i]);
+    history.replaceState(null,'','#slide-'+(i+1));
+  }
+  document.getElementById('next').onclick=()=>show(i+1);
+  document.getElementById('prev').onclick=()=>show(i-1);
+  document.getElementById('ntoggle').onclick=()=>notes.classList.toggle('show');
+
+  // tabs
+  const tabs=[...document.querySelectorAll('.tab')];
+  function setView(v){
+    tabs.forEach(t=>t.setAttribute('aria-selected',t.dataset.view===v));
+    document.getElementById('deck').classList.toggle('active',v==='deck');
+    document.getElementById('guide').classList.toggle('active',v==='guide');
+    document.getElementById('fs').style.display=v==='deck'?'':'none';
+    if(v==='guide'){window.scrollTo(0,0);} else {show(i);}
+  }
+  tabs.forEach(t=>t.onclick=()=>setView(t.dataset.view));
+  document.querySelectorAll('[data-goto]').forEach(a=>a.onclick=e=>{e.preventDefault();setView(a.dataset.goto);});
+
+  document.getElementById('fs').onclick=()=>{
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen&&document.exitFullscreen();
+  };
+
+  document.addEventListener('keydown',e=>{
+    if(!document.getElementById('deck').classList.contains('active')) return;
+    if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();show(i+1);}
+    else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();show(i-1);}
+    else if(e.key==='Home'){show(0);} else if(e.key==='End'){show(slides.length-1);}
+    else if(e.key==='n'||e.key==='N'){notes.classList.toggle('show');}
+    else if(e.key==='f'||e.key==='F'){document.getElementById('fs').click();}
+  });
+  // swipe
+  let sx=null;
+  document.getElementById('deck').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
+  document.getElementById('deck').addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50)show(i+(dx<0?1:-1));sx=null;});
+
+  // guide scroll-spy
+  const links=[...document.querySelectorAll('#toc a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  let lock=0;
+  function mark(id){links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+id));}
+  function spy(){
+    if(Date.now()<lock||!document.getElementById('guide').classList.contains('active')) return;
+    let cur=secs[0];
+    for(const s of secs){ if(s&&s.getBoundingClientRect().top<=120) cur=s; }
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4) cur=secs[secs.length-1];
+    if(cur) mark(cur.id);
+  }
+  window.addEventListener('scroll',spy,{passive:true});
+  // label table cells with their column header (used by the stacked mobile layout)
+  document.querySelectorAll('.gmain table').forEach(t=>{
+    const hr=t.querySelector('tr');if(hr&&hr.querySelector('th'))hr.classList.add('hrow');const hs=[...t.querySelectorAll('tr:first-child th')].map(th=>th.firstChild.textContent.trim());
+    t.querySelectorAll('tr').forEach(tr=>[...tr.children].forEach((td,k)=>{if(td.tagName==='TD'&&hs[k])td.setAttribute('data-label',hs[k]);}));
+  });
+  const mj=document.getElementById('mjump');
+  links.forEach(a=>{const o=document.createElement('option');o.value=a.getAttribute('href').slice(1);o.textContent=a.textContent;mj.appendChild(o);});
+  mj.addEventListener('change',()=>{if(mj.value){document.getElementById(mj.value).scrollIntoView({behavior:'smooth'});mj.value='';}});
+  links.forEach(a=>a.onclick=e=>{e.preventDefault();const id=a.getAttribute('href').slice(1);mark(id);lock=Date.now()+1200;document.getElementById(id).scrollIntoView({behavior:'smooth'});});
+
+  show(i);
+})();
+</script>
+</body>
+</html>

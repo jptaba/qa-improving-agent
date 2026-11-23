@@ -1,0 +1,21 @@
+{
+  "_comment": "Strategic memory: what the AUT looks like. Refreshed between runs by the explorer. Reviewed via PR.",
+  "baseUrl": "http://localhost:4173",
+  "routes": [
+    { "path": "/", "name": "Sign in", "auth": false, "elements": ["textbox Email", "textbox Password", "button Sign in", "alert (on error)"] },
+    { "path": "/checkout", "name": "Checkout", "auth": true, "elements": ["heading Checkout", "table Cart", "text Total", "radiogroup Payment method", "button Pay now", "alert (on error)"] },
+    { "path": "/confirmation?id=…", "name": "Order confirmed", "auth": true, "elements": ["heading Order confirmed", "text Order id", "text Total"] }
+  ],
+  "api": [
+    { "method": "POST", "path": "/api/login", "contract": "requirements/openapi/orders.yaml" },
+    { "method": "POST", "path": "/api/orders", "contract": "requirements/openapi/orders.yaml" },
+    { "method": "GET", "path": "/api/health" }
+  ],
+  "roles": [{ "name": "shopper", "account": "demo@example.com" }],
+  "stateGraph": [
+    { "from": "Sign in", "action": "valid credentials", "to": "Checkout" },
+    { "from": "Sign in", "action": "invalid credentials", "to": "Sign in + alert" },
+    { "from": "Checkout", "action": "Pay now with valid card", "to": "Order confirmed" },
+    { "from": "Checkout", "action": "Pay now with expired card", "to": "Checkout + alert" }
+  ]
+}

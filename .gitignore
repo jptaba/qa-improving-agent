@@ -1,0 +1,9 @@
+node_modules/
+reports/
+evidence/
+scorecard/runs/
+sealed-acceptance/out/
+test-results/
+playwright-report/
+memory/heal-attempts.json
+.DS_Store

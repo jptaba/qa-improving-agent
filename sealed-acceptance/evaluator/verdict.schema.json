@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Acceptance verdict",
+  "type": "object",
+  "required": ["requirement_id", "verdict", "evaluator_version", "checks"],
+  "properties": {
+    "requirement_id": { "type": "string", "pattern": "^REQ-\\d+$" },
+    "title": { "type": "string" },
+    "verdict": { "enum": ["pass", "fail", "unknown", "could_not_verify"] },
+    "observed": { "type": ["string", "null"], "description": "What actually happened (first failing check)" },
+    "expected": { "type": ["string", "null"], "description": "What the requirement says should happen" },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "object", "properties": { "name": { "type": "string" }, "path": { "type": "string" } } }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "status"],
+        "properties": { "title": { "type": "string" }, "status": { "type": "string" }, "error": { "type": ["string", "null"] } }
+      }
+    },
+    "evaluator_version": { "type": "string" },
+    "evaluated_at": { "type": "string", "format": "date-time" },
+    "target": { "type": "string" }
+  }
+}

@@ -1,0 +1,37 @@
+# AGENTS.md — map for AI agents working in this repo
+
+Keep this file short. It is a table of contents, not a manual. Read the linked doc when you need it.
+
+## What this repo is
+A harness for self-improving QA agents that test an application under test (AUT) with Playwright.
+The demo AUT lives in `demo-aut/` (start it with `npm run aut`, port 4173).
+
+## Golden rules (enforced by hooks and CI, not just by this file)
+1. **Never weaken a test.** Do not remove or loosen `expect(...)`, add `test.skip`/`test.fixme`, add `waitForTimeout`, or raise timeouts. A hook blocks it.
+2. **Never read or edit `sealed-acceptance/`.** It is the independent referee. You are not allowed to see it.
+3. **Never edit** `requirements/`, `inventory/`, `harness/`, `.claude/`, `.github/`, `playwright.config.ts`. Humans own these.
+4. **If the app looks broken, say so.** Write an escalation (see below). Reporting a real bug is a success, not a failure.
+5. Tag every test with its requirement: `test('…', { tag: ['@REQ-142'] }, …)`.
+
+## How to escalate
+Write a JSON file to `escalations/<timestamp>-<short-name>.json`:
+```json
+{ "type": "aut_bug | needs_human | unclear_requirement", "requirement_id": "REQ-142", "test": "tests/…", "summary": "…", "evidence": "path to trace/screenshot" }
+```
+
+## Where things are
+| Need | Go to |
+| --- | --- |
+| Conventions and principles | `docs/golden-principles.md` |
+| How to pick locators | `docs/locator-policy.md` |
+| Classifying a failure | `docs/failure-taxonomy.md` |
+| Requirements (read-only) | `requirements/REQ-*.md`, `requirements/openapi/` |
+| Reusable helpers (login, data) | `skills/` |
+| Lessons learned | `memory/playbook.md` |
+| What the app looks like | `memory/app-model.json` |
+| Your role's instructions | `.claude/agents/qa-*.md` |
+
+## Commands
+- Run all tests: `npx playwright test`
+- Run one requirement: `npx playwright test --grep @REQ-142`
+- Prove a new test is stable: `npx playwright test <file> --repeat-each=5 --retries=0`

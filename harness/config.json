@@ -1,0 +1,35 @@
+{
+  "_comment": "Control-plane settings. Human-owned (agents are denied Edit on harness/).",
+  "baseUrl": "http://localhost:4173",
+  "admission": {
+    "passK": 5
+  },
+  "budgets": {
+    "maxRequirementsPerRun": 3,
+    "maxTriagePerRun": 5,
+    "maxHealAttemptsPerTest": 2,
+    "maxUsdPerRun": 5.0,
+    "maxTurnsPerAgent": 30
+  },
+  "agents": {
+    "command": "claude",
+    "_note": "Agents run via the Claude Code CLI in headless mode (claude -p). Verify flags with `claude --help` for your installed version.",
+    "models": {
+      "qa-planner": "opus",
+      "qa-generator": "sonnet",
+      "qa-triage": "sonnet"
+    }
+  },
+  "protectedPaths": [
+    "sealed-acceptance/",
+    "requirements/",
+    "inventory/",
+    "harness/",
+    ".claude/",
+    ".github/",
+    "playwright.config.ts"
+  ],
+  "healPolicy": {
+    "maxTimeoutMs": 15000
+  }
+}
