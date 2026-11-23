@@ -41,7 +41,7 @@
       "requirement_id": "REQ-160",
       "criterion": "AC1–AC3: orders API contract",
       "test": "tests/generated/REQ-160.spec.ts",
-      "status": "failing"
+      "status": "pending-review"
     },
     {
       "id": "T-0170-01",

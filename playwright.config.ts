@@ -7,15 +7,16 @@ const useDemoAut = !process.env.BASE_URL;
 
 export default defineConfig({
   testDir: './tests',
-  outputDir: './reports/artifacts',
+  outputDir: process.env.PW_OUTPUT_DIR ?? './reports/artifacts', // unique per run when runs are concurrent
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   // Retries CLASSIFY flaky tests; harness/ci/fail-on-skip-or-flaky.mjs never counts flaky as green.
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  timeout: 30_000,
+  // Timeouts are env-tunable so the canary can fail broken builds fast (healthy pass^k still guards against false alarms).
+  timeout: Number(process.env.PW_TEST_TIMEOUT ?? 30_000),
   globalTimeout: 25 * 60_000,
-  expect: { timeout: 5_000 },
+  expect: { timeout: Number(process.env.PW_EXPECT_TIMEOUT ?? 5_000) },
   reporter: [
     ['list'],
     ['json', { outputFile: process.env.PW_JSON_OUTPUT ?? 'reports/results.json' }],
@@ -24,7 +25,7 @@ export default defineConfig({
   ],
   use: {
     baseURL,
-    actionTimeout: 10_000, // a broken page fails fast instead of waiting for the test timeout
+    actionTimeout: Number(process.env.PW_ACTION_TIMEOUT ?? 10_000), // a broken page fails fast instead of waiting for the test timeout
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     // Optional: point at an installed Chrome instead of Playwright's bundled browser.
