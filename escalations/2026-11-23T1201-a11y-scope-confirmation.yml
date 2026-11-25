@@ -1,0 +1,26 @@
+type: unclear_requirement
+requirement_id: REQ-170
+status: open            # open | answered | done
+raised: 2026-11-23
+test: tests/a11y/accessibility.spec.ts
+
+summary: |
+  Should the accessibility checks cover every page, or only sign-in and checkout?
+
+  The roadmap (Phase 3) asks for automated accessibility checks on every
+  page. REQ-170 only covers the sign-in and checkout pages. The order
+  confirmation page and the "page not found" page have no accessibility
+  requirement, so there is no requirement to tag a test with.
+
+  Sign-in and checkout are already scanned, now also with their error
+  messages showing. Adding the other two pages is one test each once a
+  requirement covers them.
+
+evidence: |
+  docs/roadmap.md, Phase 3
+  requirements/REQ-170-accessibility.md, AC1
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision:             # all-pages | sign-in-and-checkout-only
+  notes: |

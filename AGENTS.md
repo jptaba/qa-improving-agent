@@ -14,9 +14,18 @@ The demo AUT lives in `demo-aut/` (start it with `npm run aut`, port 4173).
 5. Tag every test with its requirement: `test('…', { tag: ['@REQ-142'] }, …)`.
 
 ## How to escalate
-Write a JSON file to `escalations/<timestamp>-<short-name>.json`:
-```json
-{ "type": "aut_bug | needs_human | unclear_requirement", "requirement_id": "REQ-142", "test": "tests/…", "summary": "…", "evidence": "path to trace/screenshot" }
+Write a YAML file to `escalations/<timestamp>-<short-name>.yml` (full template: `escalations/README.md`):
+```yaml
+type: aut_bug            # aut_bug | needs_human | unclear_requirement
+requirement_id: REQ-142
+status: open
+test: tests/…
+summary: |
+  One-line headline, then details wrapped at ~75 characters.
+evidence: path to trace/screenshot
+answer:
+  decision:
+  notes: |
 ```
 
 ## Where things are

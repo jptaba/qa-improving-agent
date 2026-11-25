@@ -1,0 +1,32 @@
+type: unclear_requirement
+requirement_id: REQ-160
+status: open            # open | answered | done
+raised: 2026-11-23
+test: tests/contract/orders-request.spec.ts
+
+summary: |
+  The orders API accepts order items that break the contract. Is that a bug?
+
+  The frozen contract (requirements/openapi/orders.yaml, OrderRequest) says
+  every item needs `sku` (text) and `qty` (whole number, at least 1), and
+  that an invalid body gets 400.
+
+  The server (demo-aut/server.mjs, POST /api/orders) only checks that
+  cardId is text and items is a non-empty list. So these all get 201 and
+  create an order:
+    items: [{ sku: "WID-1", qty: 0 }]
+    items: [{ qty: 2 }]
+    items: ["x"]
+
+  REQ-160's acceptance criteria do not mention invalid items, so either the
+  app is wrong or the contract is stricter than intended. No test was
+  added for these cases, to avoid a test that is always red.
+
+evidence: |
+  Code reading: demo-aut/server.mjs lines 184-191
+  versus requirements/openapi/orders.yaml lines 74-87.
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision:             # app-is-wrong | contract-is-too-strict
+  notes: |
