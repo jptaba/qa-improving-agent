@@ -8,3 +8,4 @@ playwright-report/
 memory/heal-attempts.json
 .DS_Store
 .playwright-mcp/
+.schemathesis/

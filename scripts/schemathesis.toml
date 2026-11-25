@@ -1,0 +1,11 @@
+# Schemathesis config for `npm run contract:fuzz` (scripts/contract-fuzz.mjs sets ST_SESSION).
+
+# Send the session through the contract's own security scheme, so it is applied only where the
+# contract requires it and dropped for the "missing session cookie" negative cases.
+[auth.openapi.sessionCookie]
+api_key = "${ST_SESSION}"
+
+# The contract documents 422 "Card unknown or expired" for POST /api/orders. `cardId` is any string,
+# so a schema-valid request with an unknown card legitimately gets 422.
+[checks.positive_data_acceptance]
+expected-statuses = ["2xx", "3xx", "401", "403", "404", "409", "422", "429"]

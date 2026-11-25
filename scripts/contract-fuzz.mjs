@@ -24,9 +24,14 @@ if (!session) {
   process.exit(2);
 }
 
-const args = ['run', SCHEMA, '--url', BASE, '--header', `Cookie: session=${session}`, '--checks', 'all', ...process.argv.slice(2)];
-console.log(`schemathesis ${args.join(' ').replace(session, '<session>')}`);
-const r = spawnSync('schemathesis', args, { stdio: 'inherit', shell: process.platform === 'win32' });
+const args = ['--config-file', 'scripts/schemathesis.toml', 'run', SCHEMA, '--url', BASE, '--checks', 'all', ...process.argv.slice(2)];
+console.log(`schemathesis ${args.join(' ')}`);
+// `python -m` works even when pip's Scripts folder is not on PATH (common on Windows user installs).
+const python = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+const r = spawnSync(python, ['-m', 'schemathesis.cli', ...args], {
+  stdio: 'inherit',
+  env: { ...process.env, ST_SESSION: session },
+});
 if (r.error) {
   console.error('Could not start schemathesis. Install it with `pip install schemathesis`.');
   process.exit(2);

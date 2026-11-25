@@ -30,7 +30,8 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 ## Phase 3: Guarded triage + specialist stack
 - [x] `qa-triage` role with heal caps and escalation
 - [ ] Specmatic + Schemathesis against `requirements/openapi/`
-  - Interim: hand-written request-body contract tests in `tests/contract/` (no extra tooling). Tool install pending approval.
+  - Done: request-body contract tests in `tests/contract/`; Schemathesis via `npm run contract:fuzz` (not yet in CI).
+  - Open: Specmatic; add `contract:fuzz` to the CI workflow (human-owned).
 - [ ] axe checks extended to every page + manual a11y checklist
   - Done: error states of sign-in and checkout scanned; checklist in `docs/a11y-manual-checklist.md`.
   - Open: confirmation and 404 pages need a requirement first (see `escalations/`).
