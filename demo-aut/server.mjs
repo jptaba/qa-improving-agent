@@ -169,7 +169,8 @@ const server = http.createServer(async (req, res) => {
 
     case 'POST /api/login': {
       const body = await readJson(req);
-      if (!body || USERS[body.email] !== body.password) return json(res, 401, { error: 'invalid_credentials' });
+      const known = body && typeof body.email === 'string' && typeof body.password === 'string' && Object.hasOwn(USERS, body.email);
+      if (!known || USERS[body.email] !== body.password) return json(res, 401, { error: 'invalid_credentials' });
       const token = randomUUID();
       sessions.add(token);
       return json(res, 200, { ok: true }, { 'set-cookie': `session=${token}; HttpOnly; Path=/; SameSite=Lax` });
@@ -182,7 +183,8 @@ const server = http.createServer(async (req, res) => {
     case 'POST /api/orders': {
       if (!signedIn(req)) return json(res, 401, { error: 'unauthenticated' });
       const body = await readJson(req);
-      if (!body || typeof body.cardId !== 'string' || !Array.isArray(body.items) || body.items.length === 0) {
+      const validItem = (i) => i !== null && typeof i === 'object' && typeof i.sku === 'string' && Number.isInteger(i.qty) && i.qty >= 1;
+      if (!body || typeof body.cardId !== 'string' || !Array.isArray(body.items) || body.items.length === 0 || !body.items.every(validItem)) {
         return json(res, 400, { error: 'invalid_request' });
       }
       const card = CARDS.find((c) => c.id === body.cardId);
@@ -198,8 +200,12 @@ const server = http.createServer(async (req, res) => {
       if (!signedIn(req)) return send(res, 302, '', 'text/plain', { location: '/' });
       return send(res, 200, confirmationPage(orders.get(url.searchParams.get('id'))));
 
-    default:
+    default: {
+      // Known API path, unsupported method: 405 with the methods that are allowed.
+      const allowed = { '/api/login': 'POST', '/api/orders': 'POST', '/api/health': 'GET' }[url.pathname];
+      if (allowed) return json(res, 405, { error: 'method_not_allowed' }, { allow: allowed });
       return send(res, 404, page('Not found', '<h1>Page not found</h1>'));
+    }
   }
 });
 

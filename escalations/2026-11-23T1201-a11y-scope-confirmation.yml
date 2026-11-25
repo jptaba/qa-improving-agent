@@ -1,6 +1,7 @@
 type: unclear_requirement
 requirement_id: REQ-170
-status: open            # open | answered | done
+status: answered        # open | answered | done
+waiting_on: a person to edit requirements/REQ-170-accessibility.md (see resolution)
 raised: 2026-11-23
 test: tests/a11y/accessibility.spec.ts
 
@@ -22,5 +23,16 @@ evidence: |
 
 # ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
 answer:
-  decision:             # all-pages | sign-in-and-checkout-only
+  decision: all-pages   # all-pages | sign-in-and-checkout-only
   notes: |
+    Approved 2026-11-24.
+
+resolution: |
+  Needs a human edit first (agents may not change requirements/).
+  In requirements/REQ-170-accessibility.md:
+    - title:   Accessible pages
+    - journey: Sign in, Checkout, Confirmation, Not found
+    - AC1:     THE SYSTEM SHALL have no automatically detectable WCAG 2.2
+               A/AA violations on every page, including the sign-in,
+               checkout, order confirmation and "page not found" pages.
+  Then ask Claude to add the confirmation and not-found tests.

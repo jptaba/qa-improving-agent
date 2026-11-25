@@ -1,6 +1,6 @@
 type: unclear_requirement
 requirement_id: REQ-160
-status: open            # open | answered | done
+status: done            # open | answered | done
 raised: 2026-11-23
 test: tests/contract/orders-request.spec.ts
 
@@ -28,5 +28,12 @@ evidence: |
 
 # ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
 answer:
-  decision:             # app-is-wrong | contract-is-too-strict
+  decision: app-is-wrong   # app-is-wrong | contract-is-too-strict
   notes: |
+    Approved 2026-11-24.
+
+resolution: |
+  2026-11-24. demo-aut/server.mjs: every item must be an object with a
+  string sku and an integer qty of at least 1, otherwise 400.
+  Tests: 7 item-rule cases added to tests/contract/orders-request.spec.ts;
+  all 7 failed on the old code and pass now (5/5 repeats).
