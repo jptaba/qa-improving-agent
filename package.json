@@ -16,7 +16,8 @@
     "orchestrate": "node harness/orchestrator/run.mjs",
     "orchestrate:dry": "node harness/orchestrator/run.mjs --dry-run",
     "orchestrate:no-agents": "node harness/orchestrator/run.mjs --no-agents",
-    "selftest:hooks": "node harness/hooks/selftest.mjs"
+    "selftest:hooks": "node harness/hooks/selftest.mjs",
+    "contract:fuzz": "node scripts/contract-fuzz.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
