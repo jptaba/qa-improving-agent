@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-25T15:29:33.109Z",
+  "at": "2026-11-25T17:13:14.320Z",
   "k": 3,
   "parallel": 4,
   "timeouts": "fast",
-  "wall_seconds": 120.6,
+  "wall_seconds": 234.6,
   "targets": {
     "suite": {
       "tpr_all": 1,
@@ -15,7 +15,7 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 271.2
+      "seconds": 535.6
     },
     "evaluator": {
       "tpr_all": 1,
@@ -27,7 +27,7 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 56.6
+      "seconds": 98.5
     }
   },
   "jobs": [
@@ -37,7 +37,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 13.4
+      "seconds": 31.8
     },
     {
       "kind": "healthy",
@@ -45,7 +45,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 13.4
+      "seconds": 31.7
     },
     {
       "kind": "healthy",
@@ -53,7 +53,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 13.4
+      "seconds": 31.7
     },
     {
       "kind": "healthy",
@@ -61,7 +61,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 4
+      "seconds": 8.3
     },
     {
       "kind": "healthy",
@@ -69,7 +69,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 4.1
+      "seconds": 8.8
     },
     {
       "kind": "healthy",
@@ -77,7 +77,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 4.3
+      "seconds": 9.1
     },
     {
       "kind": "fault",
@@ -91,7 +91,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 21.8
+      "seconds": 47
     },
     {
       "kind": "fault",
@@ -104,7 +104,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 8
+      "seconds": 14
     },
     {
       "kind": "fault",
@@ -117,7 +117,7 @@
         "REQ-170",
         "REQ-101"
       ],
-      "seconds": 21.1
+      "seconds": 42.8
     },
     {
       "kind": "fault",
@@ -129,7 +129,7 @@
       "failedRequirements": [
         "REQ-101"
       ],
-      "seconds": 8
+      "seconds": 12.1
     },
     {
       "kind": "fault",
@@ -141,7 +141,7 @@
       "failedRequirements": [
         "REQ-150"
       ],
-      "seconds": 16
+      "seconds": 36.9
     },
     {
       "kind": "fault",
@@ -153,7 +153,7 @@
       "failedRequirements": [
         "REQ-150"
       ],
-      "seconds": 6.9
+      "seconds": 11.7
     },
     {
       "kind": "fault",
@@ -170,7 +170,7 @@
         "REQ-180",
         "REQ-101"
       ],
-      "seconds": 65.6
+      "seconds": 103.9
     },
     {
       "kind": "fault",
@@ -185,7 +185,7 @@
         "REQ-150",
         "REQ-170"
       ],
-      "seconds": 7.8
+      "seconds": 10.9
     },
     {
       "kind": "fault",
@@ -195,13 +195,14 @@
       "split": "holdout",
       "outcome": "caught",
       "failedRequirements": [
+        "REQ-170",
         "REQ-142",
         "REQ-190",
         "REQ-150",
         "REQ-180",
         "REQ-160"
       ],
-      "seconds": 28.1
+      "seconds": 59.5
     },
     {
       "kind": "fault",
@@ -214,7 +215,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 6.5
+      "seconds": 11.2
     },
     {
       "kind": "impossible",
@@ -230,7 +231,7 @@
         "REQ-160",
         "REQ-101"
       ],
-      "seconds": 78.4
+      "seconds": 150.3
     },
     {
       "kind": "impossible",
@@ -244,7 +245,7 @@
         "REQ-160",
         "REQ-170"
       ],
-      "seconds": 7
+      "seconds": 12.4
     }
   ]
 }

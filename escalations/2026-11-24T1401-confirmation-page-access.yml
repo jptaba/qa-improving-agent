@@ -1,7 +1,7 @@
 type: unclear_requirement
 requirement_id: REQ-150
 status: answered        # open | answered | done
-waiting_on: a person to add the requirement and inventory entry (see resolution)
+waiting_on: a person to run proposals/apply-human-edits.mjs
 raised: 2026-11-24
 test: exploratory walk (qa-explorer role, run by hand); no gating test yet
 

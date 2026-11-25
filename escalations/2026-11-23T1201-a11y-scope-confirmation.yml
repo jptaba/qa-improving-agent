@@ -1,7 +1,7 @@
 type: unclear_requirement
 requirement_id: REQ-170
 status: answered        # open | answered | done
-waiting_on: a person to edit requirements/REQ-170-accessibility.md (see resolution)
+waiting_on: a person to run proposals/apply-human-edits.mjs
 raised: 2026-11-23
 test: tests/a11y/accessibility.spec.ts
 
@@ -36,3 +36,8 @@ resolution: |
                A/AA violations on every page, including the sign-in,
                checkout, order confirmation and "page not found" pages.
   Then ask Claude to add the confirmation and not-found tests.
+
+  2026-11-25: tests added to tests/a11y/accessibility.spec.ts (order
+  confirmation, page not found, order not found); all pass 5/5, no
+  violations found. The requirement edit is in
+  proposals/apply-human-edits.mjs. Set status to done once it is applied.
