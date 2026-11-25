@@ -41,13 +41,27 @@
       "requirement_id": "REQ-160",
       "criterion": "AC1–AC3: orders API contract",
       "test": "tests/generated/REQ-160.spec.ts",
-      "status": "pending-review"
+      "status": "passing"
     },
     {
       "id": "T-0170-01",
       "requirement_id": "REQ-170",
-      "criterion": "AC1+AC2: no detectable WCAG A/AA violations; fields have accessible names",
+      "criterion": "AC1+AC2: no detectable WCAG A/AA violations on any page; fields have accessible names",
       "test": "tests/a11y/accessibility.spec.ts",
+      "status": "passing"
+    },
+    {
+      "id": "T-0180-01",
+      "requirement_id": "REQ-180",
+      "criterion": "AC1+AC2: one payment at a time; retry after failure",
+      "test": "tests/checkout/single-payment.spec.ts",
+      "status": "passing"
+    },
+    {
+      "id": "T-0190-01",
+      "requirement_id": "REQ-190",
+      "criterion": "AC1–AC3: confirmation visible to its buyer only; 404 otherwise",
+      "test": "tests/checkout/order-ownership.spec.ts",
       "status": "passing"
     }
   ]
