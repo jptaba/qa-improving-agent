@@ -1,6 +1,7 @@
 type: unclear_requirement
 requirement_id: REQ-142
-status: open            # open | answered | done
+status: answered        # open | answered | done
+waiting_on: a person to add the requirement and inventory entry (see resolution)
 raised: 2026-11-24
 test: exploratory walk (qa-explorer role, run by hand); no gating test yet
 
@@ -27,5 +28,16 @@ evidence: |
 
 # ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
 answer:
-  decision:             # fix-app-and-add-requirement | not-a-bug
+  decision: fix-app-and-add-requirement   # fix-app-and-add-requirement | not-a-bug
   notes: |
+    Approved 2026-11-25 ("Proceed").
+
+resolution: |
+  2026-11-25. App: Pay now is disabled while a payment is in flight and
+  re-enabled when it fails (demo-aut/server.mjs).
+  Tests: tests/checkout/single-payment.spec.ts, tagged @REQ-180. The
+  repeat-click test failed on the old code; both pass 5/5 now.
+  Still needs a person: add REQ-180 to requirements/ and the inventory,
+  using proposals/requirement-draft-REQ-180-single-payment.md.
+  Not fixed (out of scope in the draft): server-side duplicate detection,
+  and paying again after Back from the confirmation page.

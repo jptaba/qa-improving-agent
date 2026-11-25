@@ -5,3 +5,4 @@
 {"at":"2026-11-23T04:35:07.653Z","k":3,"wall_seconds":70,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0}}}
 {"at":"2026-11-23T15:29:12.441Z","k":3,"wall_seconds":89.5,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0}}}
 {"at":"2026-11-25T02:57:56.997Z","k":3,"wall_seconds":93.7,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0}}}
+{"at":"2026-11-25T15:29:33.109Z","k":3,"wall_seconds":120.6,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0}}}

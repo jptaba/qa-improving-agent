@@ -17,8 +17,10 @@ const PORT = Number(process.env.PORT || 4173);
 const FAULTS = new Set((process.env.FAULT || '').split(',').map((s) => s.trim()).filter(Boolean));
 const has = (f) => FAULTS.has(f);
 
-const USERS = { 'demo@example.com': 'correct-horse' };
-const sessions = new Set();
+// Second account exists so per-shopper order ownership can be tested.
+const USERS = { 'demo@example.com': 'correct-horse', 'other@example.com': 'battery-staple' };
+const sessions = new Map(); // session token -> email of the signed-in shopper
+const orderOwners = new Map(); // order id -> email of the shopper who placed it
 const orders = new Map();
 
 const CARDS = [
@@ -118,22 +120,31 @@ function checkoutPage() {
   const script = `
 const CARDS = ${cardsJson};
 const form = document.getElementById('pay'); const msg = document.getElementById('msg');
+const payBtn = form.querySelector('button[type=submit]');
+let paying = false;
 form.addEventListener('submit', async (e) => {
-  e.preventDefault(); msg.hidden = true;
+  e.preventDefault();
+  if (paying) return; // one payment at a time: ignore repeat clicks while a request is in flight
+  msg.hidden = true;
   const card = CARDS.find((c) => c.id === form.card.value);
   ${clientCheck}
-  const res = await fetch('/api/orders', { method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ cardId: card.id, items: ${JSON.stringify(CART.map(({ sku, qty }) => ({ sku, qty })))} }) });
-  const data = await res.json().catch(() => ({}));
-  if (res.status === 201 && data.id) { location.href = '/confirmation?id=' + encodeURIComponent(data.id); return; }
-  msg.textContent = data.error === 'card_expired' ? 'This card has expired. Update card to continue.' : 'Payment failed. Please try again.';
+  paying = true; payBtn.disabled = true;
+  try {
+    const res = await fetch('/api/orders', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cardId: card.id, items: ${JSON.stringify(CART.map(({ sku, qty }) => ({ sku, qty })))} }) });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 201 && data.id) { location.href = '/confirmation?id=' + encodeURIComponent(data.id); return; }
+    msg.textContent = data.error === 'card_expired' ? 'This card has expired. Update card to continue.' : 'Payment failed. Please try again.';
+  } catch {
+    msg.textContent = 'Payment failed. Please try again.';
+  }
   msg.hidden = false;
+  paying = false; payBtn.disabled = false;
 });`;
   return page('Checkout', body, script);
 }
 
 function confirmationPage(order) {
-  if (!order) return page('Order not found', '<h1>Order not found</h1>');
   return page(
     'Order confirmed',
     `<h1>Order confirmed</h1><p>Order <strong id="order-id">${order.id}</strong></p><p id="total">Total: <strong>${money(order.total)}</strong></p>`,
@@ -143,6 +154,7 @@ function confirmationPage(order) {
 const cookies = (req) =>
   Object.fromEntries((req.headers.cookie || '').split(';').map((c) => c.trim().split('=')).filter((p) => p[0]));
 const signedIn = (req) => sessions.has(cookies(req).session);
+const currentUser = (req) => sessions.get(cookies(req).session);
 
 function send(res, status, body, type = 'text/html; charset=utf-8', headers = {}) {
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store', ...headers });
@@ -172,7 +184,7 @@ const server = http.createServer(async (req, res) => {
       const known = body && typeof body.email === 'string' && typeof body.password === 'string' && Object.hasOwn(USERS, body.email);
       if (!known || USERS[body.email] !== body.password) return json(res, 401, { error: 'invalid_credentials' });
       const token = randomUUID();
-      sessions.add(token);
+      sessions.set(token, body.email);
       return json(res, 200, { ok: true }, { 'set-cookie': `session=${token}; HttpOnly; Path=/; SameSite=Lax` });
     }
 
@@ -192,13 +204,20 @@ const server = http.createServer(async (req, res) => {
       if (!has('expired-card-accepted') && isExpired(card)) return json(res, 422, { error: 'card_expired' });
       const order = { id: `ord_${randomUUID().slice(0, 8)}`, total: cartTotal(), currency: 'USD', status: 'confirmed' };
       orders.set(order.id, order);
+      orderOwners.set(order.id, currentUser(req));
       if (has('api-contract-drift')) return json(res, 201, { orderId: order.id, amount: order.total });
       return json(res, 201, order);
     }
 
     case 'GET /confirmation':
       if (!signedIn(req)) return send(res, 302, '', 'text/plain', { location: '/' });
-      return send(res, 200, confirmationPage(orders.get(url.searchParams.get('id'))));
+    {
+      // Only the shopper who placed an order may see it. Unknown and foreign ids look the same (404).
+      const id = url.searchParams.get('id');
+      const order = orders.get(id);
+      if (!order || orderOwners.get(id) !== currentUser(req)) return send(res, 404, page('Order not found', '<h1>Order not found</h1>'));
+      return send(res, 200, confirmationPage(order));
+    }
 
     default: {
       // Known API path, unsupported method: 405 with the methods that are allowed.

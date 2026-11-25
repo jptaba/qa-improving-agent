@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-25T02:57:56.997Z",
+  "at": "2026-11-25T15:29:33.109Z",
   "k": 3,
   "parallel": 4,
   "timeouts": "fast",
-  "wall_seconds": 93.7,
+  "wall_seconds": 120.6,
   "targets": {
     "suite": {
       "tpr_all": 1,
@@ -15,7 +15,7 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 202.9
+      "seconds": 271.2
     },
     "evaluator": {
       "tpr_all": 1,
@@ -27,7 +27,7 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 52.9
+      "seconds": 56.6
     }
   },
   "jobs": [
@@ -37,7 +37,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 10.7
+      "seconds": 13.4
     },
     {
       "kind": "healthy",
@@ -45,7 +45,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 10.8
+      "seconds": 13.4
     },
     {
       "kind": "healthy",
@@ -53,7 +53,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 11.4
+      "seconds": 13.4
     },
     {
       "kind": "healthy",
@@ -69,7 +69,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 3.8
+      "seconds": 4.1
     },
     {
       "kind": "healthy",
@@ -77,7 +77,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 3.8
+      "seconds": 4.3
     },
     {
       "kind": "fault",
@@ -91,7 +91,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 18.9
+      "seconds": 21.8
     },
     {
       "kind": "fault",
@@ -103,60 +103,60 @@
       "failedRequirements": [
         "REQ-142",
         "REQ-160"
+      ],
+      "seconds": 8
+    },
+    {
+      "kind": "fault",
+      "id": "login-error-missing",
+      "target": "suite",
+      "requirement_id": "REQ-101",
+      "split": "optimisation",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-170",
+        "REQ-101"
+      ],
+      "seconds": 21.1
+    },
+    {
+      "kind": "fault",
+      "id": "login-error-missing",
+      "target": "evaluator",
+      "requirement_id": "REQ-101",
+      "split": "optimisation",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-101"
+      ],
+      "seconds": 8
+    },
+    {
+      "kind": "fault",
+      "id": "total-wrong",
+      "target": "suite",
+      "requirement_id": "REQ-150",
+      "split": "holdout",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-150"
+      ],
+      "seconds": 16
+    },
+    {
+      "kind": "fault",
+      "id": "total-wrong",
+      "target": "evaluator",
+      "requirement_id": "REQ-150",
+      "split": "holdout",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-150"
       ],
       "seconds": 6.9
     },
     {
       "kind": "fault",
-      "id": "login-error-missing",
-      "target": "suite",
-      "requirement_id": "REQ-101",
-      "split": "optimisation",
-      "outcome": "caught",
-      "failedRequirements": [
-        "REQ-170",
-        "REQ-101"
-      ],
-      "seconds": 18.4
-    },
-    {
-      "kind": "fault",
-      "id": "login-error-missing",
-      "target": "evaluator",
-      "requirement_id": "REQ-101",
-      "split": "optimisation",
-      "outcome": "caught",
-      "failedRequirements": [
-        "REQ-101"
-      ],
-      "seconds": 7.6
-    },
-    {
-      "kind": "fault",
-      "id": "total-wrong",
-      "target": "suite",
-      "requirement_id": "REQ-150",
-      "split": "holdout",
-      "outcome": "caught",
-      "failedRequirements": [
-        "REQ-150"
-      ],
-      "seconds": 13.4
-    },
-    {
-      "kind": "fault",
-      "id": "total-wrong",
-      "target": "evaluator",
-      "requirement_id": "REQ-150",
-      "split": "holdout",
-      "outcome": "caught",
-      "failedRequirements": [
-        "REQ-150"
-      ],
-      "seconds": 6.2
-    },
-    {
-      "kind": "fault",
       "id": "a11y-missing-label",
       "target": "suite",
       "requirement_id": "REQ-170",
@@ -165,10 +165,12 @@
       "failedRequirements": [
         "REQ-170",
         "REQ-142",
+        "REQ-190",
         "REQ-150",
+        "REQ-180",
         "REQ-101"
       ],
-      "seconds": 43.9
+      "seconds": 65.6
     },
     {
       "kind": "fault",
@@ -183,7 +185,7 @@
         "REQ-150",
         "REQ-170"
       ],
-      "seconds": 7.1
+      "seconds": 7.8
     },
     {
       "kind": "fault",
@@ -194,10 +196,12 @@
       "outcome": "caught",
       "failedRequirements": [
         "REQ-142",
+        "REQ-190",
         "REQ-150",
+        "REQ-180",
         "REQ-160"
       ],
-      "seconds": 18.4
+      "seconds": 28.1
     },
     {
       "kind": "fault",
@@ -210,7 +214,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 6.8
+      "seconds": 6.5
     },
     {
       "kind": "impossible",
@@ -220,11 +224,13 @@
       "failedRequirements": [
         "REQ-170",
         "REQ-142",
+        "REQ-190",
         "REQ-150",
+        "REQ-180",
         "REQ-160",
         "REQ-101"
       ],
-      "seconds": 57
+      "seconds": 78.4
     },
     {
       "kind": "impossible",
@@ -238,7 +244,7 @@
         "REQ-160",
         "REQ-170"
       ],
-      "seconds": 6.7
+      "seconds": 7
     }
   ]
 }

@@ -2,6 +2,8 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 export const DEMO_USER = { email: 'demo@example.com', password: 'correct-horse' } as const;
+/** A second shopper, for tests that need two accounts (e.g. order ownership). */
+export const OTHER_USER = { email: 'other@example.com', password: 'battery-staple' } as const;
 
 /** Fixed "today" for anything date-dependent (card expiry). See playbook PB-001. */
 export const FIXED_NOW = new Date('2026-01-15T10:00:00Z');

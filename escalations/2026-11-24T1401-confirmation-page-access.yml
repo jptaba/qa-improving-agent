@@ -1,6 +1,7 @@
 type: unclear_requirement
 requirement_id: REQ-150
-status: open            # open | answered | done
+status: answered        # open | answered | done
+waiting_on: a person to add the requirement and inventory entry (see resolution)
 raised: 2026-11-24
 test: exploratory walk (qa-explorer role, run by hand); no gating test yet
 
@@ -27,5 +28,19 @@ evidence: |
 
 # ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
 answer:
-  decision:             # fix-app-and-add-requirement | not-a-bug
+  decision: fix-app-and-add-requirement   # fix-app-and-add-requirement | not-a-bug
   notes: |
+    Approved 2026-11-25 ("Proceed").
+
+resolution: |
+  2026-11-25. Correction to the summary: the walk used the same account in
+  both sessions, so it showed the same shopper seeing their own order,
+  which is fine. The real gap was that orders had no owner at all, so a
+  second account would have seen them too.
+  App: each order now records who placed it; unknown ids and other
+  shoppers' orders get 404 "Order not found". Added a second demo account
+  (other@example.com) so this can be tested.
+  Tests: tests/checkout/order-ownership.spec.ts, tagged @REQ-190. Both
+  failed on the old code and pass 5/5 now.
+  Still needs a person: add REQ-190 to requirements/ and the inventory,
+  using proposals/requirement-draft-REQ-190-order-ownership.md.
