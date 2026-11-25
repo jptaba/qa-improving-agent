@@ -1,0 +1,7 @@
+{
+  "type": "unclear_requirement",
+  "requirement_id": "REQ-160",
+  "test": "tests/contract/orders-request.spec.ts",
+  "summary": "The frozen contract (requirements/openapi/orders.yaml, OrderRequest) says each item needs `sku` (string) and `qty` (integer, minimum 1), and declares 400 'Invalid request body'. The server (demo-aut/server.mjs, POST /api/orders) only checks that cardId is a string and items is a non-empty array, so bodies like items:[{sku:'WID-1',qty:0}], items:[{qty:2}] or items:['x'] are answered 201 and an order is created. REQ-160's acceptance criteria do not mention invalid item bodies, so it is unclear whether this is a bug or whether the contract is stricter than intended. Decide which; if it is a bug, item-level cases can be added to the contract test. Not added now to avoid a permanently red gating test.",
+  "evidence": "Code reading: demo-aut/server.mjs lines 184-191 versus requirements/openapi/orders.yaml lines 74-87. Live probe not run."
+}

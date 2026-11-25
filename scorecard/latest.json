@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-23T04:35:07.653Z",
+  "at": "2026-11-23T15:29:12.441Z",
   "k": 3,
   "parallel": 4,
   "timeouts": "fast",
-  "wall_seconds": 70,
+  "wall_seconds": 89.5,
   "targets": {
     "suite": {
       "tpr_all": 1,
@@ -15,7 +15,7 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 157.8
+      "seconds": 201.1
     },
     "evaluator": {
       "tpr_all": 1,
@@ -27,7 +27,7 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 53.4
+      "seconds": 53.5
     }
   },
   "jobs": [
@@ -37,7 +37,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 8.2
+      "seconds": 10.7
     },
     {
       "kind": "healthy",
@@ -45,7 +45,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 8.2
+      "seconds": 10.6
     },
     {
       "kind": "healthy",
@@ -53,7 +53,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 8.2
+      "seconds": 10.6
     },
     {
       "kind": "healthy",
@@ -61,7 +61,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 3.8
+      "seconds": 4.3
     },
     {
       "kind": "healthy",
@@ -69,7 +69,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 4.4
+      "seconds": 4.1
     },
     {
       "kind": "healthy",
@@ -77,7 +77,7 @@
       "target": "evaluator",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 6.1
+      "seconds": 3.9
     },
     {
       "kind": "fault",
@@ -87,10 +87,11 @@
       "split": "optimisation",
       "outcome": "caught",
       "failedRequirements": [
+        "REQ-170",
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 16.1
+      "seconds": 20.1
     },
     {
       "kind": "fault",
@@ -103,7 +104,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 7.8
+      "seconds": 6.9
     },
     {
       "kind": "fault",
@@ -113,9 +114,10 @@
       "split": "optimisation",
       "outcome": "caught",
       "failedRequirements": [
+        "REQ-170",
         "REQ-101"
       ],
-      "seconds": 11.3
+      "seconds": 18.9
     },
     {
       "kind": "fault",
@@ -127,7 +129,7 @@
       "failedRequirements": [
         "REQ-101"
       ],
-      "seconds": 5.3
+      "seconds": 7.5
     },
     {
       "kind": "fault",
@@ -139,7 +141,7 @@
       "failedRequirements": [
         "REQ-150"
       ],
-      "seconds": 13.3
+      "seconds": 13.2
     },
     {
       "kind": "fault",
@@ -151,7 +153,7 @@
       "failedRequirements": [
         "REQ-150"
       ],
-      "seconds": 6
+      "seconds": 6.5
     },
     {
       "kind": "fault",
@@ -166,7 +168,7 @@
         "REQ-150",
         "REQ-101"
       ],
-      "seconds": 36.7
+      "seconds": 44.9
     },
     {
       "kind": "fault",
@@ -180,37 +182,37 @@
         "REQ-142",
         "REQ-150",
         "REQ-170"
-      ],
-      "seconds": 6.8
-    },
-    {
-      "kind": "fault",
-      "id": "api-contract-drift",
-      "target": "suite",
-      "requirement_id": "REQ-160",
-      "split": "holdout",
-      "outcome": "caught",
-      "failedRequirements": [
-        "REQ-142",
-        "REQ-150",
-        "REQ-160"
-      ],
-      "seconds": 16.9
-    },
-    {
-      "kind": "fault",
-      "id": "api-contract-drift",
-      "target": "evaluator",
-      "requirement_id": "REQ-160",
-      "split": "holdout",
-      "outcome": "caught",
-      "failedRequirements": [
-        "REQ-142",
-        "REQ-160"
       ],
       "seconds": 6.3
     },
     {
+      "kind": "fault",
+      "id": "api-contract-drift",
+      "target": "suite",
+      "requirement_id": "REQ-160",
+      "split": "holdout",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-142",
+        "REQ-150",
+        "REQ-160"
+      ],
+      "seconds": 18.5
+    },
+    {
+      "kind": "fault",
+      "id": "api-contract-drift",
+      "target": "evaluator",
+      "requirement_id": "REQ-160",
+      "split": "holdout",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-142",
+        "REQ-160"
+      ],
+      "seconds": 7.3
+    },
+    {
       "kind": "impossible",
       "id": "impossible",
       "target": "suite",
@@ -222,7 +224,7 @@
         "REQ-160",
         "REQ-101"
       ],
-      "seconds": 38.9
+      "seconds": 53.6
     },
     {
       "kind": "impossible",
@@ -236,7 +238,7 @@
         "REQ-160",
         "REQ-170"
       ],
-      "seconds": 6.9
+      "seconds": 6.7
     }
   ]
 }

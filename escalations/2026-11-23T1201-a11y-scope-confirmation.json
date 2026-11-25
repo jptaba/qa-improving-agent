@@ -1,0 +1,7 @@
+{
+  "type": "unclear_requirement",
+  "requirement_id": "REQ-170",
+  "test": "tests/a11y/accessibility.spec.ts",
+  "summary": "The roadmap (Phase 3) asks for axe checks on every page, but REQ-170 only covers the sign-in and checkout pages. The order confirmation page and the 404 page have no accessibility requirement, so no test can be tagged for them. Please extend REQ-170 (or add a new requirement) to cover all pages; the tests are a one-line addition each once a requirement exists. Sign-in and checkout are now also scanned with their error alerts visible.",
+  "evidence": "docs/roadmap.md Phase 3; requirements/REQ-170-accessibility.md AC1"
+}

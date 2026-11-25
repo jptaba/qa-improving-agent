@@ -30,7 +30,10 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 ## Phase 3: Guarded triage + specialist stack
 - [x] `qa-triage` role with heal caps and escalation
 - [ ] Specmatic + Schemathesis against `requirements/openapi/`
+  - Interim: hand-written request-body contract tests in `tests/contract/` (no extra tooling). Tool install pending approval.
 - [ ] axe checks extended to every page + manual a11y checklist
+  - Done: error states of sign-in and checkout scanned; checklist in `docs/a11y-manual-checklist.md`.
+  - Open: confirmation and 404 pages need a requirement first (see `escalations/`).
 - [ ] Approval-gated visual baselines
 - **Exit:** false-heal rate measured on a labelled sample; skip count at 0
 
