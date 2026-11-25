@@ -1,0 +1,31 @@
+type: unclear_requirement
+requirement_id: REQ-150
+status: open            # open | answered | done
+raised: 2026-11-24
+test: exploratory walk (qa-explorer role, run by hand); no gating test yet
+
+summary: |
+  Any signed-in session can open any order's confirmation page.
+
+  An order made in one browser session was fully visible from a second,
+  separate session by opening /confirmation?id=<order id>. Orders are not
+  tied to the session or user that created them. The demo has a single
+  account, so today this only matters across sessions; with more than one
+  account it would let users see each other's orders (an IDOR).
+
+  Smaller, same page: an unknown id (/confirmation?id=ord_doesnotexist)
+  shows "Order not found" with HTTP 200 instead of 404.
+
+  No requirement covers order ownership or the not-found status, so this
+  is filed as unclear_requirement.
+
+evidence: |
+  Session A: sign in, pay with Visa -> /confirmation?id=ord_651e8b94
+  Session B (new browser context): sign in, open the same URL
+    -> "Order confirmed", order id ord_651e8b94 shown.
+  GET /confirmation?id=ord_doesnotexist -> 200, h1 "Order not found".
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision:             # fix-app-and-add-requirement | not-a-bug
+  notes: |

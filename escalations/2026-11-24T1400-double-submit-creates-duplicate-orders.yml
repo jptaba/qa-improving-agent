@@ -1,0 +1,31 @@
+type: unclear_requirement
+requirement_id: REQ-142
+status: open            # open | answered | done
+raised: 2026-11-24
+test: exploratory walk (qa-explorer role, run by hand); no gating test yet
+
+summary: |
+  Clicking "Pay now" quickly several times creates one order per click.
+
+  Three fast clicks on Checkout sent three POST /api/orders requests and
+  all three got 201, so the shopper is charged three times. The button is
+  not disabled while the first payment is in flight, and the API has no
+  idempotency key or duplicate check.
+
+  Also: after paying, the browser Back button returns to Checkout with
+  "Pay now" active, so the same cart can be paid again.
+
+  No requirement says an order may be placed only once per cart, so this
+  is filed as unclear_requirement. In a real shop it is a high-impact bug
+  (double charge).
+
+evidence: |
+  Signed in as demo@example.com, on /checkout ran in the page:
+    const b = document.querySelector('#pay button'); b.click(); b.click(); b.click();
+  Network: POST /api/orders -> 201, 201, 201.
+  Script: scratchpad explore.mjs (step 1 and 2), not kept in the repo.
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision:             # fix-app-and-add-requirement | not-a-bug
+  notes: |

@@ -45,5 +45,6 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 
 ## Phase 5: Expansion and ablation
 - [ ] `qa-explorer` nightly; Maestro/Appium for mobile
+  - First walk run by hand 2026-11-24: 2 candidate bugs escalated, `memory/app-model.proposed.json` written. Nightly schedule still open.
 - [ ] Ablation on each model upgrade (remove one harness component, re-run canary)
 - **Exit:** confirmed new bugs per month; every harness component justified
