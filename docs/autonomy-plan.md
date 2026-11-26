@@ -33,7 +33,7 @@ versus `main`; an impossible build must never pass).
 ## Phases (agent work after step 1)
 - **A. Land pending work:** apply `proposals/apply-roadmap-edits.mjs`; open one PR.
 - **B. Canary gate:** `harness/ci/canary-gate.mjs` + PR job comparing the PR's scorecard with `main`'s.
-- **C. PR plumbing:** agent branches open PRs labelled `agent-authored` and request auto-merge; the
+- **C. PR plumbing** (`.github/workflows/auto-merge.yml`, cloud tasks open PRs, 2026-11-26): agent branches open PRs labelled `agent-authored` and request auto-merge; the
   cloud explorer and improver tasks switch from "push a branch" to "open a PR".
 - **D. Authoring in CI:** when `requirements/` changes on `main`, the orchestrator plans, generates and
   admits tests (pass^k), updates `inventory/`, and opens a PR.
