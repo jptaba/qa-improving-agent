@@ -1,10 +1,21 @@
 #!/usr/bin/env node
 // Required CI check for agent-authored PRs. Deliberately conservative:
 // any hit routes the PR to a human (exit 1) rather than letting it merge silently.
+// Updated for the autonomy plan (docs/autonomy-plan.md, 2026-11-26).
 import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 
 const base = process.env.BASE_REF || 'origin/main';
+const labels = new Set((process.env.PR_LABELS || '').split(',').map((s) => s.trim()).filter(Boolean));
 const sh = (c) => execSync(c, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+let guard = ['.claude/settings.json', '.claude/settings.local.json', 'harness/hooks/', 'harness/config.json'];
+try {
+  guard = JSON.parse(fs.readFileSync('harness/config.json', 'utf8')).protectedPaths ?? guard;
+} catch {
+  /* keep the defaults */
+}
+guard = guard.filter((p) => p !== 'sealed-acceptance/');
+const inGuard = (f) => guard.some((p) => (p.endsWith('/') ? f.startsWith(p) : f === p));
 
 let diff = '';
 let files = [];
@@ -29,10 +40,14 @@ for (const line of diff.split('\n')) {
   const t = added && line.match(/timeout\s*:\s*([\d_]+)/);
   if (t && Number(t[1].replace(/_/g, '')) > 15000) problems.push(`${currentFile}: timeout above policy (${t[1]}ms)`);
 }
+
+const sealed = files.filter((f) => f.startsWith('sealed-acceptance/'));
+const graded = files.filter((f) => /^(tests|skills|specs)\//.test(f));
+if (sealed.length && graded.length)
+  problems.push(`sealed-acceptance/ and tests/skills/specs changed in the same PR (${sealed.length} + ${graded.length} files). The referee and the work it grades must land separately.`);
 for (const f of files) {
-  if (/-snapshots\//.test(f)) problems.push(`${f}: visual baseline changed (needs approval)`);
-  if (/^(requirements|harness|sealed-acceptance|\.github|\.claude)\//.test(f) || f === 'playwright.config.ts')
-    problems.push(`${f}: protected path changed`);
+  if (/-snapshots\//.test(f) && !labels.has('visual-approved')) problems.push(`${f}: visual baseline changed; needs the owner's visual-approved label (REQ-200 AC2)`);
+  if (inGuard(f)) problems.push(`${f}: the guard itself changed (human-owned)`);
 }
 
 if (problems.length) {
