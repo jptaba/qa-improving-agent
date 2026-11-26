@@ -32,9 +32,9 @@ npm run aut              # terminal 1: demo app on http://localhost:4173
 npm run evaluate         # terminal 2: one verdict per requirement
 ```
 
-Then the scorecard (takes a few minutes):
+Then the scorecard (runs scenarios in parallel; see `scorecard/README.md` for options):
 ```bash
-npm run canary           # healthy ×3, 5 planted bugs, 1 impossible build → scorecard/latest.json
+npm run canary           # healthy ×3, 5 planted bugs, 1 impossible build → scorecard/latest.json (~90s on 2 cores)
 ```
 
 And the orchestrator:

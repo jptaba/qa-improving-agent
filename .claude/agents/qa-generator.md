@@ -23,4 +23,4 @@ Given `specs/<REQ-ID>.md`, write `tests/generated/<REQ-ID>.spec.ts` so that **ev
 - Drop or loosen an assertion from the Test contract to make a test pass.
 
 ## If a contracted assertion fails against the app
-That is probably a real bug. **Keep the assertion**, then write an escalation `escalations/<ts>-<REQ-ID>.json` with `type: aut_bug`, the failing assertion, and the trace path. Reporting a real bug is a successful outcome.
+That is probably a real bug. **Keep the assertion**, then write an escalation `escalations/<ts>-<REQ-ID>.yml` with `type: aut_bug`, the failing assertion, and the trace path. Reporting a real bug is a successful outcome.

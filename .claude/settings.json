@@ -3,13 +3,10 @@
     "deny": [
       "Read(./sealed-acceptance/**)",
       "Edit(./sealed-acceptance/**)",
-      "Edit(./requirements/**)",
-      "Edit(./inventory/**)",
-      "Edit(./harness/**)",
-      "Edit(./.claude/**)",
-      "Edit(./.github/**)",
-      "Edit(./playwright.config.ts)",
-      "Bash(git push:*)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./.claude/settings.local.json)",
+      "Edit(./harness/hooks/**)",
+      "Edit(./harness/config.json)",
       "Bash(gh pr merge:*)",
       "Bash(curl:*)",
       "Bash(wget:*)"

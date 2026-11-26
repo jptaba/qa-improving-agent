@@ -17,7 +17,7 @@ jobs:
   e2e:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
     strategy:
       fail-fast: false
       matrix:
@@ -51,8 +51,13 @@ jobs:
           node-version: 22
       - name: Hook self-test
         run: node harness/hooks/selftest.mjs
-      - name: Inventory guard (only status may change)
+      - name: Inventory guard (only status may change, unless the requirement changed)
         run: node harness/ci/inventory-guard.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+      - name: Requirement changes land on their own (agent-authored PRs)
+        if: contains(github.event.pull_request.labels.*.name, 'agent-authored')
+        run: node harness/ci/requirements-isolation.mjs
         env:
           BASE_REF: origin/${{ github.base_ref }}
       - name: Heal-diff check (agent-authored PRs)
@@ -61,12 +66,48 @@ jobs:
         env:
           BASE_REF: origin/${{ github.base_ref }}
 
+  canary-gate:
+    # The PR may not make the scorecard worse than its base branch (docs/autonomy-plan.md).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - run: npm ci
+      - name: Canary on the PR
+        run: |
+          rm -f scorecard/latest.json
+          node harness/canary/run-canary.mjs --k 2 || true
+          cp scorecard/latest.json /tmp/head.json || true
+      - name: Canary on the base branch
+        run: |
+          git worktree add /tmp/base origin/${{ github.base_ref }}
+          cd /tmp/base
+          npm ci || npm install --no-audit --no-fund
+          npx playwright install chromium
+          rm -f scorecard/latest.json
+          node harness/canary/run-canary.mjs --k 2 || true
+          cp scorecard/latest.json /tmp/base.json || true
+      - name: Held-out score and healthy TNR must not drop
+        run: node harness/ci/canary-gate.mjs --base /tmp/base.json --head /tmp/head.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: canary-gate-scorecards
+          path: |
+            /tmp/head.json
+            /tmp/base.json
+            scorecard/runs/
+
   blind-evaluator:
     # In production this job lives in the SEALED repo with its own token and receives only
     # the requirements bundle + the preview URL.
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
@@ -82,10 +123,30 @@ jobs:
           name: acceptance-verdicts
           path: sealed-acceptance/out/
 
+  contract-fuzz:
+    # Property-based run against the frozen OpenAPI contract (roadmap Phase 3).
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install "schemathesis>=4.34,<5"
+      - name: Start demo AUT (replace with preview URL)
+        run: |
+          node demo-aut/server.mjs &
+          npx --yes wait-on http://localhost:4173/api/health
+      - name: Schemathesis against requirements/openapi/orders.yaml (required check)
+        run: npm run contract:fuzz
+
   canary:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
     steps:
       - uses: actions/checkout@v4
       - run: npm ci

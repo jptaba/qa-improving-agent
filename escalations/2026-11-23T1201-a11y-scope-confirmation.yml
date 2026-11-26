@@ -1,0 +1,44 @@
+type: unclear_requirement
+requirement_id: REQ-170
+status: done            # open | answered | done
+raised: 2026-11-23
+test: tests/a11y/accessibility.spec.ts
+
+summary: |
+  Should the accessibility checks cover every page, or only sign-in and checkout?
+
+  The roadmap (Phase 3) asks for automated accessibility checks on every
+  page. REQ-170 only covers the sign-in and checkout pages. The order
+  confirmation page and the "page not found" page have no accessibility
+  requirement, so there is no requirement to tag a test with.
+
+  Sign-in and checkout are already scanned, now also with their error
+  messages showing. Adding the other two pages is one test each once a
+  requirement covers them.
+
+evidence: |
+  docs/roadmap.md, Phase 3
+  requirements/REQ-170-accessibility.md, AC1
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision: all-pages   # all-pages | sign-in-and-checkout-only
+  notes: |
+    Approved 2026-11-24.
+
+resolution: |
+  Needs a human edit first (agents may not change requirements/).
+  In requirements/REQ-170-accessibility.md:
+    - title:   Accessible pages
+    - journey: Sign in, Checkout, Confirmation, Not found
+    - AC1:     THE SYSTEM SHALL have no automatically detectable WCAG 2.2
+               A/AA violations on every page, including the sign-in,
+               checkout, order confirmation and "page not found" pages.
+  Then ask Claude to add the confirmation and not-found tests.
+
+  2026-11-25: tests added to tests/a11y/accessibility.spec.ts (order
+  confirmation, page not found, order not found); all pass 5/5, no
+  violations found. The requirement edit is in
+  proposals/apply-human-edits.mjs. Set status to done once it is applied.
+
+  2026-11-25: applied and committed (21be4a8). Done.

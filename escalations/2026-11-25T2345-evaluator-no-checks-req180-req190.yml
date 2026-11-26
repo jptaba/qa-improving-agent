@@ -1,0 +1,74 @@
+type: needs_human
+requirement_id: REQ-180, REQ-190
+status: answered         # open | answered | done
+waiting_on: the owner of sealed-acceptance/ to add the checks below
+raised: 2026-11-25
+test: npm run canary (evaluator target, healthy builds)
+
+summary: |
+  The sealed evaluator has no checks for REQ-180 and REQ-190, so the
+  canary now reports every healthy build as a false alarm (evaluator TNR 0%).
+
+  REQ-180 and REQ-190 were added to requirements/ in commit 21be4a8. The
+  evaluator reads every requirement there. For both it returns
+  "could_not_verify: No acceptance check covers this requirement yet", and
+  that makes each healthy evaluator run exit non-zero. Every other
+  requirement passes on a healthy build, and all 5 planted faults are
+  still caught by the evaluator (TPR 100%, impossible build rejected).
+
+  The builder suite is unaffected: TNR 100%, TPR 100%, and its own tests
+  for both requirements pass (tests/checkout/single-payment.spec.ts,
+  tests/checkout/order-ownership.spec.ts).
+
+  The last canary before 21be4a8 showed evaluator TNR 100%, so this is
+  caused by adopting the requirements, not by the review fixes applied in
+  the same run. Agents may not read or edit sealed-acceptance/, so a
+  person has to decide.
+
+evidence: |
+  scorecard/latest.json (evaluator tnr: 0, pass_k_healthy: false)
+  scorecard/runs/2026-11-26T04-40-53-378Z/verdicts-healthy-1-evaluator.json
+  scorecard/history.jsonl, last line (metric_version 2)
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision: add-sealed-checks   # add-sealed-checks | treat-could-not-verify-as-non-gating | other
+  notes: |
+    Chosen 2026-11-25: keeps the evaluator independent of the builder suite.
+
+resolution: |
+  Needs the owner of sealed-acceptance/ (agents may not read or edit it).
+  What each check must show, taken only from the requirement text, so the
+  evaluator stays independent of tests/:
+
+  REQ-180 (requirements/REQ-180-single-payment.md)
+    AC1  While a payment is in progress, a second Pay now from Checkout
+         is not submitted: one order results, not two.
+    AC2  After a failed payment (e.g. an expired card), the shopper can
+         pay again from Checkout and the order goes through.
+    Out of scope: idempotency key; paying again after Back from
+    confirmation. Do not check these.
+
+  REQ-190 (requirements/REQ-190-order-ownership.md)
+    AC1  The buyer opens their own order's confirmation page: it shows.
+    AC2  Another signed-in shopper opens that page: 404 and
+         "Order not found". Accounts are in the requirement's
+         reference data.
+    AC3  A made-up order id: 404 and "Order not found".
+
+  Done when: npm run canary shows evaluator TNR 100% and pass^k true,
+  with every planted fault still caught. Then ask Claude to set this
+  escalation to done.
+
+  Planted faults so the canary proves the new checks can fail
+  (2026-11-25, already in demo-aut/server.mjs, switched on with FAULT):
+    double-submit          REQ-180  no in-flight guard on Pay now;
+                                    repeat clicks create extra orders
+    foreign-order-visible  REQ-190  any signed-in shopper can open
+                                    another shopper's confirmation page
+  Builder suite against each: exactly one test fails, and it is the one
+  for the fault's own requirement. Healthy build: 40/40.
+  Still to do by the owner: add both ids to the faults list in
+  sealed-acceptance/seeded-faults/catalogue.json with their
+  requirement_id and a split (optimisation or holdout; at least one in
+  holdout keeps the held-out score meaningful).

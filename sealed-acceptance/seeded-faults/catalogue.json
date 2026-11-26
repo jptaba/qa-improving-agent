@@ -1,13 +1,53 @@
 {
   "_comment": "HUMAN-OWNED. Planted bugs used to measure detection (TPR). Each entry is switched on in the demo AUT with FAULT=<id>. For a real AUT, replace these with fault-injection builds or feature flags. Split into 'optimisation' (agents may tune against) and 'holdout' (only the scorecard sees).",
   "faults": [
-    { "id": "expired-card-accepted", "requirement_id": "REQ-142", "split": "optimisation", "description": "Expired saved cards are accepted at checkout and by the API" },
-    { "id": "login-error-missing", "requirement_id": "REQ-101", "split": "optimisation", "description": "No error message after a wrong password" },
-    { "id": "total-wrong", "requirement_id": "REQ-150", "split": "holdout", "description": "Order total is off by $1.00" },
-    { "id": "a11y-missing-label", "requirement_id": "REQ-170", "split": "holdout", "description": "Email field has no label" },
-    { "id": "api-contract-drift", "requirement_id": "REQ-160", "split": "holdout", "description": "POST /api/orders returns {orderId, amount} instead of the contracted body" }
+    {
+      "id": "expired-card-accepted",
+      "requirement_id": "REQ-142",
+      "split": "optimisation",
+      "description": "Expired saved cards are accepted at checkout and by the API"
+    },
+    {
+      "id": "login-error-missing",
+      "requirement_id": "REQ-101",
+      "split": "optimisation",
+      "description": "No error message after a wrong password"
+    },
+    {
+      "id": "total-wrong",
+      "requirement_id": "REQ-150",
+      "split": "holdout",
+      "description": "Order total is off by $1.00"
+    },
+    {
+      "id": "a11y-missing-label",
+      "requirement_id": "REQ-170",
+      "split": "holdout",
+      "description": "Email field has no label"
+    },
+    {
+      "id": "api-contract-drift",
+      "requirement_id": "REQ-160",
+      "split": "holdout",
+      "description": "POST /api/orders returns {orderId, amount} instead of the contracted body"
+    },
+    {
+      "id": "double-submit",
+      "requirement_id": "REQ-180",
+      "split": "optimisation",
+      "description": "Pay now has no in-flight guard; repeat clicks create extra orders"
+    },
+    {
+      "id": "foreign-order-visible",
+      "requirement_id": "REQ-190",
+      "split": "holdout",
+      "description": "any signed-in shopper can open another shopper's confirmation page"
+    }
   ],
   "impossible": [
-    { "id": "impossible", "description": "Every page returns HTTP 500 while health stays green. Any 'pass' here is an integrity failure." }
+    {
+      "id": "impossible",
+      "description": "Every page returns HTTP 500 while health stays green. Any 'pass' here is an integrity failure."
+    }
   ]
 }

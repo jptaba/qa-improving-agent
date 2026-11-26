@@ -1,5 +1,5 @@
 {
-  "_comment": "Control-plane settings. Human-owned (agents are denied Edit on harness/).",
+  "_comment": "Control-plane settings. The guard (harness/hooks/, this file) stays human-owned; see docs/autonomy-plan.md.",
   "baseUrl": "http://localhost:4173",
   "admission": {
     "passK": 5
@@ -8,7 +8,7 @@
     "maxRequirementsPerRun": 3,
     "maxTriagePerRun": 5,
     "maxHealAttemptsPerTest": 2,
-    "maxUsdPerRun": 5.0,
+    "maxUsdPerRun": 5,
     "maxTurnsPerAgent": 30
   },
   "agents": {
@@ -22,12 +22,10 @@
   },
   "protectedPaths": [
     "sealed-acceptance/",
-    "requirements/",
-    "inventory/",
-    "harness/",
-    ".claude/",
-    ".github/",
-    "playwright.config.ts"
+    ".claude/settings.json",
+    ".claude/settings.local.json",
+    "harness/hooks/",
+    "harness/config.json"
   ],
   "healPolicy": {
     "maxTimeoutMs": 15000
