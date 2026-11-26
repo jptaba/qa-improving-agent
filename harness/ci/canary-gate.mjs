@@ -17,8 +17,12 @@ const read = (file, label) => {
   }
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 };
-const base = read(opt('base'), 'base');
 const head = read(opt('head'), 'head');
+// A base branch without a working canary (e.g. the first PR into a bare scaffold) has nothing to compare
+// against. The head still has to pass the absolute checks below.
+let base = { targets: {} };
+if (opt('base') && fs.existsSync(opt('base'))) base = read(opt('base'), 'base');
+else console.warn(`canary-gate: WARNING no base scorecard at ${opt('base')}; comparing nothing, checking the PR's own scorecard only.`);
 
 const pct = (x) => (x == null ? '—' : `${Math.round(x * 100)}%`);
 const problems = [];
