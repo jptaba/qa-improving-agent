@@ -9,10 +9,10 @@ const root = path.resolve(here, '..', '..');
 const hook = path.join(here, 'protect-oracle.mjs');
 
 const cases = [
-  ['allow: write a new generated test', 0, { tool_name: 'Write', tool_input: { file_path: 'tests/generated/REQ-160.spec.ts', content: "test('x', async () => { expect(1).toBe(1); });" } }],
+  ['allow: write a new generated test', 0, { tool_name: 'Write', tool_input: { file_path: 'tests/generated/REQ-999-selftest.spec.ts', content: "test('x', async () => { expect(1).toBe(1); });" } }],
   ['allow: heal a locator, keep assertion', 0, { tool_name: 'Edit', tool_input: { file_path: 'tests/checkout/expired-card.spec.ts', old_string: "getByRole('button', { name: 'Pay' })", new_string: "getByRole('button', { name: 'Pay now' })" } }],
   ['block: edit sealed evaluator', 2, { tool_name: 'Edit', tool_input: { file_path: 'sealed-acceptance/evaluator/tests/acceptance.spec.ts', old_string: 'a', new_string: 'b' } }],
-  ['block: edit requirements', 2, { tool_name: 'Write', tool_input: { file_path: 'requirements/REQ-142-expired-card.md', content: 'x' } }],
+  ['allow: edit requirements', 0, { tool_name: 'Write', tool_input: { file_path: 'requirements/REQ-999-selftest.md', content: 'x' } }],
   ['block: edit the guard config', 2, { tool_name: 'Edit', tool_input: { file_path: 'harness/config.json', old_string: 'a', new_string: 'b' } }],
   ['block: edit the guard', 2, { tool_name: 'Write', tool_input: { file_path: 'harness/hooks/protect-oracle.mjs', content: 'process.exit(0)' } }],
   ['block: edit agent settings', 2, { tool_name: 'Edit', tool_input: { file_path: '.claude/settings.json', old_string: 'a', new_string: 'b' } }],

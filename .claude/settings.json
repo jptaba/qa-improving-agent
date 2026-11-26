@@ -3,7 +3,6 @@
     "deny": [
       "Read(./sealed-acceptance/**)",
       "Edit(./sealed-acceptance/**)",
-      "Edit(./requirements/**)",
       "Edit(./.claude/settings.json)",
       "Edit(./.claude/settings.local.json)",
       "Edit(./harness/hooks/**)",

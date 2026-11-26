@@ -22,7 +22,6 @@
   },
   "protectedPaths": [
     "sealed-acceptance/",
-    "requirements/",
     ".claude/settings.json",
     ".claude/settings.local.json",
     "harness/hooks/",
