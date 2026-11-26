@@ -1,7 +1,6 @@
 type: needs_human
 requirement_id: REQ-180, REQ-190
-status: answered         # open | answered | done
-waiting_on: the owner of sealed-acceptance/ to add the checks below
+status: done             # open | answered | done
 raised: 2026-11-25
 test: npm run canary (evaluator target, healthy builds)
 
@@ -72,3 +71,12 @@ resolution: |
   sealed-acceptance/seeded-faults/catalogue.json with their
   requirement_id and a split (optimisation or holdout; at least one in
   holdout keeps the held-out score meaningful).
+
+  2026-11-26: done. Catalogue entries landed with PR #1
+  (double-submit optimisation, foreign-order-visible holdout). The blind
+  evaluator author (cloud task, checkout without tests/) added 5 sealed
+  checks, one per AC, in PR #3; each fault fails its own requirement.
+  Canary on main afterwards: suite and evaluator both caught 100% (all and
+  holdout), TNR 100%, pass^k true, impossible build never green.
+  Gap left: REQ-180 AC2 and REQ-190 AC1/AC3 have no planted fault yet,
+  so they are proven only on the healthy app.
