@@ -63,6 +63,13 @@
       "criterion": "AC1–AC3: confirmation visible to its buyer only; 404 otherwise",
       "test": "tests/checkout/order-ownership.spec.ts",
       "status": "passing"
+    },
+    {
+      "id": "T-0200-01",
+      "requirement_id": "REQ-200",
+      "criterion": "AC1+AC2: pages match approved screenshots; baselines change only with approval",
+      "test": "tests/visual/pages.spec.ts",
+      "status": "pending-review"
     }
   ]
 }

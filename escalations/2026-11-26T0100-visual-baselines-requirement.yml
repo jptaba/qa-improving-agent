@@ -1,6 +1,6 @@
 type: unclear_requirement
 requirement_id: REQ-200
-status: open             # open | answered | done
+status: answered         # open | answered | done
 raised: 2026-11-26
 test: tests/visual/pages.spec.ts (not written yet)
 
@@ -28,5 +28,13 @@ evidence: |
 
 # ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
 answer:
-  decision:              # accept-draft | accept-with-changes (say which in notes) | not-now
+  decision: accept-with-changes   # accept-draft | accept-with-changes (say which in notes) | not-now
   notes: |
+    2026-11-26: owner asked Claude to proceed with all remaining phases and
+    to write requirements. Accepted the draft's four pages and Linux CI
+    baselines; AC2 names the approval: the visual-approved label, added by
+    the owner, is the only way a screenshot may change.
+
+resolution: |
+  requirements/REQ-200-visual-baselines.md lands in its own PR. Tests,
+  baselines and the label gate follow in the next PR.
