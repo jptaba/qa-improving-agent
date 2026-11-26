@@ -51,8 +51,13 @@ jobs:
           node-version: 22
       - name: Hook self-test
         run: node harness/hooks/selftest.mjs
-      - name: Inventory guard (only status may change)
+      - name: Inventory guard (only status may change, unless the requirement changed)
         run: node harness/ci/inventory-guard.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+      - name: Requirement changes land on their own (agent-authored PRs)
+        if: contains(github.event.pull_request.labels.*.name, 'agent-authored')
+        run: node harness/ci/requirements-isolation.mjs
         env:
           BASE_REF: origin/${{ github.base_ref }}
       - name: Heal-diff check (agent-authored PRs)
@@ -60,6 +65,41 @@ jobs:
         run: node harness/hooks/heal-diff-check.mjs
         env:
           BASE_REF: origin/${{ github.base_ref }}
+
+  canary-gate:
+    # The PR may not make the scorecard worse than its base branch (docs/autonomy-plan.md).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - run: npm ci
+      - name: Canary on the PR
+        run: |
+          rm -f scorecard/latest.json
+          node harness/canary/run-canary.mjs --k 2 || true
+          cp scorecard/latest.json /tmp/head.json || true
+      - name: Canary on the base branch
+        run: |
+          git worktree add /tmp/base origin/${{ github.base_ref }}
+          cd /tmp/base
+          npm ci
+          rm -f scorecard/latest.json
+          node harness/canary/run-canary.mjs --k 2 || true
+          cp scorecard/latest.json /tmp/base.json || true
+      - name: Held-out score and healthy TNR must not drop
+        run: node harness/ci/canary-gate.mjs --base /tmp/base.json --head /tmp/head.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: canary-gate-scorecards
+          path: |
+            /tmp/head.json
+            /tmp/base.json
+            scorecard/runs/
 
   blind-evaluator:
     # In production this job lives in the SEALED repo with its own token and receives only

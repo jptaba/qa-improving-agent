@@ -9,7 +9,8 @@ The demo AUT lives in `demo-aut/` (start it with `npm run aut`, port 4173).
 ## Golden rules (enforced by hooks and CI, not just by this file)
 1. **Never weaken a test.** Do not remove or loosen `expect(...)`, add `test.skip`/`test.fixme`, add `waitForTimeout`, or raise timeouts. A hook blocks it.
 2. **Never read or edit `sealed-acceptance/`.** It is the independent referee. You are not allowed to see it.
-3. **Never edit** `requirements/`, `inventory/`, `harness/`, `.claude/`, `.github/`, `playwright.config.ts`. Humans own these.
+3. **Never edit the guard:** `harness/hooks/`, `harness/config.json`, `.claude/settings.json`. Humans own these. Everything else is agent work, gated by CI (`docs/autonomy-plan.md`).
+3a. **Requirements change on their own.** Claude may write or update `requirements/` when the owner asks or the work needs it, but never in the same PR as tests, skills, specs, the app or the sealed evaluator (`harness/ci/requirements-isolation.mjs`).
 4. **If the app looks broken, say so.** Write an escalation (see below). Reporting a real bug is a success, not a failure.
 5. Tag every test with its requirement: `test('…', { tag: ['@REQ-142'] }, …)`.
 

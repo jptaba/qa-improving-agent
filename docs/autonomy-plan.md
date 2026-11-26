@@ -6,7 +6,7 @@ few one-time setup steps. Scores stay meaningful because no agent can edit its o
 ## What stays human, and why
 | Touchpoint | During development | Once live |
 | --- | --- | --- |
-| Requirements (`requirements/`) | the project owner writes or approves them | synced from Jira, Confluence, OpenAPI/Swagger by a sync job (Phase H) |
+| Requirements (`requirements/`) | Claude writes and updates them when the owner asks or the work needs it, each in its own PR (`requirements-isolation`) | synced from Jira, Confluence, OpenAPI/Swagger by a sync job (Phase H) |
 | The guard (`harness/hooks/`, `harness/config.json`, `.claude/settings.json`) | human-owned | human-owned |
 | Sealed evaluator (`sealed-acceptance/`) | written by a **blind author agent** that sees only requirements and the running app, never `tests/` | same, in its own repo |
 
@@ -21,9 +21,14 @@ versus `main`; an impossible build must never pass).
 ## One-time setup (people)
 1. `node proposals/unlock-for-autonomy.mjs`, `npm run selftest:hooks`, commit, restart Claude Code.
 2. GitHub repo settings: allow auto-merge; protect `main` and mark the checks above as required.
-3. Add the `ANTHROPIC_API_KEY` repository secret (for agent jobs in CI).
-4. Create an empty private repo for the sealed evaluator (e.g. `qa-improving-agent-sealed`) and run the
-   split commands Claude provides (agents cannot read `sealed-acceptance/`, so a person moves it).
+3. No API key (Claude Pro): agent work runs as Claude Code cloud scheduled tasks on the subscription,
+   not in GitHub Actions. Each task polls for work (requirements without tests, failing `main`,
+   requirements the evaluator cannot verify) and opens a PR. Optional later: `claude setup-token`
+   gives a subscription token for GitHub Actions (`CLAUDE_CODE_OAUTH_TOKEN` secret).
+4. A separate sealed repo is only needed if the blind author cannot be kept away from `tests/` with a
+   sparse checkout of this repo. Try the sparse checkout first.
+5. Install the GitHub CLI once (`winget install --id GitHub.cli`, then `gh auth login`) so local
+   Claude sessions can open PRs.
 
 ## Phases (agent work after step 1)
 - **A. Land pending work:** apply `proposals/apply-roadmap-edits.mjs`; open one PR.
