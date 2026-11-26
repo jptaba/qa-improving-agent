@@ -2,13 +2,18 @@
 // CI check for agent-authored PRs: a requirement change lands on its own, before any test work.
 // Claude may write requirements, but never in the same PR as the tests or checks that are graded
 // against them; otherwise an agent could move the target and the arrow together.
-// Allowed together with requirements/: inventory/ (criterion text), docs/, escalations/, proposals/.
+// Allowed together with requirements/: inventory/ (criterion text), docs/, escalations/, proposals/, and
+// new or changed sealed checks in sealed-acceptance/evaluator/tests/. Those are the referee, not the work
+// being graded: the blind evaluator author pushes them onto a requirement PR so the requirement arrives
+// already verifiable (owner's decision, 2026-11-26). The evaluator runner, its config and the seeded-fault
+// catalogue still may not change alongside a requirement, and neither may the app or the builder's tests.
 import { execSync } from 'node:child_process';
 
 const base = process.env.BASE_REF || 'origin/main';
 const changed = execSync(`git diff --name-only ${base}...HEAD`, { encoding: 'utf8' }).split('\n').filter(Boolean);
 const reqs = changed.filter((f) => f.startsWith('requirements/'));
-const graded = changed.filter((f) => /^(tests|skills|specs|sealed-acceptance|demo-aut)\//.test(f));
+const referee = (f) => f.startsWith('sealed-acceptance/evaluator/tests/');
+const graded = changed.filter((f) => /^(tests|skills|specs|sealed-acceptance|demo-aut)\//.test(f) && !referee(f));
 
 if (reqs.length && graded.length) {
   console.error(
