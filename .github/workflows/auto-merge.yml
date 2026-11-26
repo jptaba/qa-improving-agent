@@ -1,0 +1,26 @@
+name: auto-merge
+
+# Agent PRs merge themselves once every required check on main's branch protection passes.
+# The merge is done by GitHub, not by an agent; agents are denied `gh pr merge` (.claude/settings.json).
+# Only PRs from this repository carrying the agent-authored label are enabled.
+on:
+  pull_request:
+    types: [opened, reopened, labeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'agent-authored') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Turn on auto-merge (squash)
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
