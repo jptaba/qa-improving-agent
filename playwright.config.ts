@@ -34,7 +34,14 @@ export default defineConfig({
     // Optional: point at an installed Chrome instead of Playwright's bundled browser.
     ...(process.env.PW_CHROME_PATH ? { launchOptions: { executablePath: process.env.PW_CHROME_PATH } } : {}),
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', testIgnore: /[\\/]visual[\\/]/, use: { ...devices['Desktop Chrome'] } },
+    // REQ-200 screenshots: only in the Linux CI container that took the baselines (PW_VISUAL=1 there).
+    // Elsewhere the project is left out, not skipped, so fonts that differ never fail a local run.
+    ...(process.env.PW_VISUAL === '1'
+      ? [{ name: 'visual', testMatch: /[\\/]visual[\\/].*\.spec\.ts$/, use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 720 } } }]
+      : []),
+  ],
   webServer: useDemoAut
     ? {
         command: 'node demo-aut/server.mjs',

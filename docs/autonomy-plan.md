@@ -41,7 +41,7 @@ versus `main`; an impossible build must never pass).
 - **F. Blind evaluator author:** sealed repo with its own `.claude/settings.json` (denies `tests/`, `skills/`,
   `specs/`), a scheduled task that writes checks for any requirement the evaluator reports as
   `could_not_verify`, and a planted fault per new requirement. First job: REQ-180 and REQ-190.
-- **G. Visual baselines:** after REQ-200 is decided (`escalations/2026-11-26T0100-*`); baselines from the CI container.
+- **G. Visual baselines:** done. `tests/visual/pages.spec.ts`, baselines taken by the `visual-baselines` workflow in the CI container, changes gated by the owner's `visual-approved` label. See `docs/visual-baselines.md`.
 - **H. Requirement sync (go-live; adapters done, `docs/requirements-sync.md`, scheduling waits for credentials):** adapters that pull Jira/Confluence/OpenAPI into `requirements/`
   in the existing EARS format, as a PR a person approves until trust is established.
 - **I. Observability and ablation:** OpenTelemetry reporter (done, off until an endpoint secret is set); ablation procedure in `docs/ablation.md`, run on each model upgrade.
