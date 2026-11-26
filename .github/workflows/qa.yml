@@ -30,6 +30,10 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shard }}/2
         env:
           PW_JSON_OUTPUT: reports/results-${{ matrix.shard }}.json
+          # Optional trace export: set these repository secrets to send one trace per run (empty = off).
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+          OTEL_SERVICE_NAME: qa-harness-e2e
       - name: Skipped = failed, flaky = needs review
         if: ${{ !cancelled() }}
         run: node harness/ci/fail-on-skip-or-flaky.mjs reports/results-${{ matrix.shard }}.json
