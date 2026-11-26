@@ -44,7 +44,7 @@ versus `main`; an impossible build must never pass).
 - **G. Visual baselines:** after REQ-200 is decided (`escalations/2026-11-26T0100-*`); baselines from the CI container.
 - **H. Requirement sync (go-live):** adapters that pull Jira/Confluence/OpenAPI into `requirements/`
   in the existing EARS format, as a PR a person approves until trust is established.
-- **I. Observability and ablation:** OpenTelemetry export; ablation run on each model upgrade.
+- **I. Observability and ablation:** OpenTelemetry reporter (done, off until an endpoint secret is set); ablation procedure in `docs/ablation.md`, run on each model upgrade.
 
 ## What a person still sees
 A weekly digest: merged agent PRs, open escalations (`aut_bug`, `unclear_requirement`), and the scorecard trend.

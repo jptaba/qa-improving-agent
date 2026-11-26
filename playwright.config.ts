@@ -23,6 +23,8 @@ export default defineConfig({
     ['json', { outputFile: process.env.PW_JSON_OUTPUT ?? 'reports/results.json' }],
     ['junit', { outputFile: 'reports/junit.xml' }],
     ['html', { outputFolder: 'reports/html', open: 'never' }],
+    // OpenTelemetry trace per run; only when an OTLP endpoint is configured (harness/reporters/otel-reporter.mjs).
+    ...(process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? [['./harness/reporters/otel-reporter.mjs'] as [string]] : []),
   ],
   use: {
     baseURL,
