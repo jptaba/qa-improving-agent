@@ -51,6 +51,11 @@ jobs:
           node-version: 22
       - name: Hook self-test
         run: node harness/hooks/selftest.mjs
+      - name: Requirements are well-formed with unique ids
+        run: node harness/ci/requirements-lint.mjs
+      - run: npm ci
+      - name: Requirement sync adapters (unit tests)
+        run: node --test scripts/requirements-sync/sync.test.mjs
       - name: Inventory guard (only status may change, unless the requirement changed)
         run: node harness/ci/inventory-guard.mjs
         env:

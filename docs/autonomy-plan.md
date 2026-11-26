@@ -42,7 +42,7 @@ versus `main`; an impossible build must never pass).
   `specs/`), a scheduled task that writes checks for any requirement the evaluator reports as
   `could_not_verify`, and a planted fault per new requirement. First job: REQ-180 and REQ-190.
 - **G. Visual baselines:** after REQ-200 is decided (`escalations/2026-11-26T0100-*`); baselines from the CI container.
-- **H. Requirement sync (go-live):** adapters that pull Jira/Confluence/OpenAPI into `requirements/`
+- **H. Requirement sync (go-live; adapters done, `docs/requirements-sync.md`, scheduling waits for credentials):** adapters that pull Jira/Confluence/OpenAPI into `requirements/`
   in the existing EARS format, as a PR a person approves until trust is established.
 - **I. Observability and ablation:** OpenTelemetry export; ablation run on each model upgrade.
 
