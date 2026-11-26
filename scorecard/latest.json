@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-25T17:13:14.320Z",
+  "at": "2026-11-26T15:23:54.420Z",
   "k": 3,
   "parallel": 4,
   "timeouts": "fast",
-  "wall_seconds": 234.6,
+  "wall_seconds": 143,
   "targets": {
     "suite": {
       "tpr_all": 1,
@@ -15,19 +15,24 @@
       "impossible_green": 0,
       "missed": [],
       "flagged_not_caught": [],
-      "seconds": 535.6
+      "errors": [],
+      "seconds": 323.7
     },
     "evaluator": {
-      "tpr_all": 1,
-      "tpr_optimisation": 1,
-      "tpr_holdout": 1,
+      "tpr_all": 0.7142857142857143,
+      "tpr_optimisation": 0.6666666666666666,
+      "tpr_holdout": 0.75,
       "any_failure_rate": 1,
-      "tnr": 1,
-      "pass_k_healthy": true,
+      "tnr": 0,
+      "pass_k_healthy": false,
       "impossible_green": 0,
       "missed": [],
-      "flagged_not_caught": [],
-      "seconds": 98.5
+      "flagged_not_caught": [
+        "double-submit (REQ-180)",
+        "foreign-order-visible (REQ-190)"
+      ],
+      "errors": [],
+      "seconds": 59.9
     }
   },
   "jobs": [
@@ -37,7 +42,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 31.8
+      "seconds": 15
     },
     {
       "kind": "healthy",
@@ -45,7 +50,7 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 31.7
+      "seconds": 14.9
     },
     {
       "kind": "healthy",
@@ -53,31 +58,31 @@
       "target": "suite",
       "outcome": "pass",
       "failedRequirements": [],
-      "seconds": 31.7
+      "seconds": 14.9
     },
     {
       "kind": "healthy",
       "id": "healthy-1",
       "target": "evaluator",
-      "outcome": "pass",
+      "outcome": "FALSE ALARM",
       "failedRequirements": [],
-      "seconds": 8.3
+      "seconds": 4.8
     },
     {
       "kind": "healthy",
       "id": "healthy-2",
       "target": "evaluator",
-      "outcome": "pass",
+      "outcome": "FALSE ALARM",
       "failedRequirements": [],
-      "seconds": 8.8
+      "seconds": 3.8
     },
     {
       "kind": "healthy",
       "id": "healthy-3",
       "target": "evaluator",
-      "outcome": "pass",
+      "outcome": "FALSE ALARM",
       "failedRequirements": [],
-      "seconds": 9.1
+      "seconds": 3.6
     },
     {
       "kind": "fault",
@@ -91,7 +96,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 47
+      "seconds": 22.2
     },
     {
       "kind": "fault",
@@ -104,7 +109,7 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 14
+      "seconds": 6.6
     },
     {
       "kind": "fault",
@@ -117,7 +122,7 @@
         "REQ-170",
         "REQ-101"
       ],
-      "seconds": 42.8
+      "seconds": 21.4
     },
     {
       "kind": "fault",
@@ -129,7 +134,7 @@
       "failedRequirements": [
         "REQ-101"
       ],
-      "seconds": 12.1
+      "seconds": 6.6
     },
     {
       "kind": "fault",
@@ -141,7 +146,7 @@
       "failedRequirements": [
         "REQ-150"
       ],
-      "seconds": 36.9
+      "seconds": 15.7
     },
     {
       "kind": "fault",
@@ -153,7 +158,7 @@
       "failedRequirements": [
         "REQ-150"
       ],
-      "seconds": 11.7
+      "seconds": 6
     },
     {
       "kind": "fault",
@@ -170,7 +175,7 @@
         "REQ-180",
         "REQ-101"
       ],
-      "seconds": 103.9
+      "seconds": 73
     },
     {
       "kind": "fault",
@@ -185,7 +190,7 @@
         "REQ-150",
         "REQ-170"
       ],
-      "seconds": 10.9
+      "seconds": 7.2
     },
     {
       "kind": "fault",
@@ -202,7 +207,7 @@
         "REQ-180",
         "REQ-160"
       ],
-      "seconds": 59.5
+      "seconds": 34.9
     },
     {
       "kind": "fault",
@@ -215,7 +220,51 @@
         "REQ-142",
         "REQ-160"
       ],
-      "seconds": 11.2
+      "seconds": 6.4
+    },
+    {
+      "kind": "fault",
+      "id": "double-submit",
+      "target": "suite",
+      "requirement_id": "REQ-180",
+      "split": "optimisation",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-180"
+      ],
+      "seconds": 16.4
+    },
+    {
+      "kind": "fault",
+      "id": "double-submit",
+      "target": "evaluator",
+      "requirement_id": "REQ-180",
+      "split": "optimisation",
+      "outcome": "flagged (wrong requirement)",
+      "failedRequirements": [],
+      "seconds": 4
+    },
+    {
+      "kind": "fault",
+      "id": "foreign-order-visible",
+      "target": "suite",
+      "requirement_id": "REQ-190",
+      "split": "holdout",
+      "outcome": "caught",
+      "failedRequirements": [
+        "REQ-190"
+      ],
+      "seconds": 14.7
+    },
+    {
+      "kind": "fault",
+      "id": "foreign-order-visible",
+      "target": "evaluator",
+      "requirement_id": "REQ-190",
+      "split": "holdout",
+      "outcome": "flagged (wrong requirement)",
+      "failedRequirements": [],
+      "seconds": 4.3
     },
     {
       "kind": "impossible",
@@ -231,7 +280,7 @@
         "REQ-160",
         "REQ-101"
       ],
-      "seconds": 150.3
+      "seconds": 80.6
     },
     {
       "kind": "impossible",
@@ -245,7 +294,7 @@
         "REQ-160",
         "REQ-170"
       ],
-      "seconds": 12.4
+      "seconds": 6.6
     }
   ]
 }

@@ -1,0 +1,32 @@
+type: unclear_requirement
+requirement_id: REQ-200
+status: open             # open | answered | done
+raised: 2026-11-26
+test: tests/visual/pages.spec.ts (not written yet)
+
+summary: |
+  Visual baselines (roadmap Phase 3) need a requirement before any test
+  can be written.
+
+  Every test must be tagged with a requirement (golden rule 5), and no
+  requirement covers how pages look. A draft is ready in
+  proposals/requirement-draft-REQ-200-visual-baselines.md: the sign-in,
+  checkout, confirmation and "page not found" pages must match an
+  approved screenshot, and a screenshot changes only when a person
+  approves it.
+
+  Two choices change the work:
+  - Which pages. The draft has the four main pages; error states and
+    "order not found" could be added.
+  - Where approved screenshots are taken. Screenshots taken on Windows do
+    not match the Linux CI run (fonts differ), so the draft takes them in
+    the CI container and has a person commit them.
+
+evidence: |
+  docs/roadmap.md, Phase 3: "Approval-gated visual baselines"
+  proposals/requirement-draft-REQ-200-visual-baselines.md
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision:              # accept-draft | accept-with-changes (say which in notes) | not-now
+  notes: |

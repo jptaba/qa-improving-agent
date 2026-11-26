@@ -82,6 +82,26 @@ jobs:
           name: acceptance-verdicts
           path: sealed-acceptance/out/
 
+  contract-fuzz:
+    # Property-based run against the frozen OpenAPI contract (roadmap Phase 3).
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install "schemathesis>=4.34,<5"
+      - name: Start demo AUT (replace with preview URL)
+        run: |
+          node demo-aut/server.mjs &
+          npx --yes wait-on http://localhost:4173/api/health
+      - name: Schemathesis against requirements/openapi/orders.yaml (required check)
+        run: npm run contract:fuzz
+
   canary:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest

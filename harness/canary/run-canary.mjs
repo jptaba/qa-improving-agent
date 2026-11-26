@@ -22,7 +22,8 @@ const opt = (n, d) => (argv.includes(`--${n}`) ? argv[argv.indexOf(`--${n}`) + 1
 const K = Number(opt('k', 3));
 const only = opt('only', null);
 const pick = opt('faults', null)?.split(',');
-const PARALLEL = Math.max(1, Number(opt('parallel', Math.min(4, os.cpus().length))));
+const PARALLEL_DEFAULT = Math.min(4, os.cpus().length);
+const PARALLEL = Number.parseInt(opt('parallel', ''), 10) >= 1 ? Number.parseInt(opt('parallel', ''), 10) : PARALLEL_DEFAULT;
 const TIMEOUTS = opt('timeouts', 'fast');
 // Fast timeouts suit a local/demo AUT that answers in milliseconds. Healthy pass^k runs use the same
 // timeouts, so if they are too tight for your AUT the scorecard shows false alarms; then use --timeouts default.
@@ -43,6 +44,9 @@ async function withAut(fault, fn) {
   try {
     const url = `http://localhost:${p}`;
     if (!(await waitForHealthy(`${url}/api/health`, 20_000))) throw new Error(`demo AUT did not start on ${url}`);
+    // A leftover server on this port would also answer healthy. Make sure it is the process we just started.
+    const health = await fetch(`${url}/api/health`).then((r) => r.json()).catch(() => null);
+    if (health?.pid !== child.pid) throw new Error(`${url} is answered by pid ${health?.pid ?? '?'}, not the AUT just started (pid ${child.pid})`);
     return await fn(url);
   } finally {
     child.kill();
@@ -57,7 +61,8 @@ const targets = {
       env: { ...timeoutEnv, BASE_URL: url, PLAYWRIGHT_JSON_OUTPUT_FILE: file, PW_OUTPUT_DIR: path.resolve(outDir, 'artifacts', `suite-${tag}`) },
       quiet: true,
     });
-    const failed = readReport(file).tests.filter((t) => t.status !== 'expected');
+    // Only a test that ran and failed counts. Skipped tests prove nothing; flaky cannot happen with --retries=0.
+    const failed = readReport(file).tests.filter((t) => t.status === 'unexpected');
     return { code, failedRequirements: new Set(failed.flatMap((t) => t.requirements)) };
   },
   evaluator(url, tag) {
@@ -99,7 +104,8 @@ async function runJob(job) {
     job.code = r.code;
     job.failedRequirements = [...r.failedRequirements];
   } catch (e) {
-    job.code = 1;
+    // The build was never tested (e.g. the AUT did not start). Not a pass, not a correct rejection.
+    job.code = null;
     job.failedRequirements = [];
     job.error = e.message;
   }
@@ -107,6 +113,7 @@ async function runJob(job) {
   if (job.kind === 'healthy') job.outcome = job.code === 0 ? 'pass' : 'FALSE ALARM';
   if (job.kind === 'fault') job.outcome = job.code === 0 ? 'MISSED' : job.failedRequirements.includes(job.requirement_id) ? 'caught' : 'flagged (wrong requirement)';
   if (job.kind === 'impossible') job.outcome = job.code === 0 ? 'PASSED: INTEGRITY FAILURE' : 'failed (correct)';
+  if (job.error) job.outcome = 'ERROR (not tested)';
   console.log(`  ${job.kind.padEnd(10)} ${job.id.padEnd(24)} ${job.target.padEnd(9)} ${job.outcome.padEnd(27)} ${job.seconds}s${job.error ? `  (${job.error})` : ''}`);
 }
 
@@ -134,6 +141,7 @@ for (const t of active) {
     impossible_green: of(t, 'impossible').filter((j) => j.code === 0).length,
     missed: fj.filter((j) => j.outcome === 'MISSED').map((j) => `${j.id} (${j.requirement_id})`),
     flagged_not_caught: fj.filter((j) => j.outcome.startsWith('flagged')).map((j) => `${j.id} (${j.requirement_id})`),
+    errors: jobs.filter((j) => j.target === t && j.error).map((j) => `${j.kind} ${j.id}: ${j.error}`),
     seconds: Number(jobs.filter((j) => j.target === t).reduce((s, j) => s + j.seconds, 0).toFixed(1)),
   };
 }
@@ -142,7 +150,7 @@ fs.mkdirSync('scorecard', { recursive: true });
 fs.writeFileSync('scorecard/latest.json', JSON.stringify(scorecard, null, 2));
 fs.appendFileSync(
   'scorecard/history.jsonl',
-  JSON.stringify({ at: scorecard.at, k: K, wall_seconds: scorecard.wall_seconds, targets: Object.fromEntries(Object.entries(scorecard.targets).map(([t, s]) => [t, { tpr_holdout: s.tpr_holdout, tpr_all: s.tpr_all, tnr: s.tnr, impossible_green: s.impossible_green }])) }) + '\n',
+  JSON.stringify({ at: scorecard.at, metric_version: 2, k: K, wall_seconds: scorecard.wall_seconds, targets: Object.fromEntries(Object.entries(scorecard.targets).map(([t, s]) => [t, { tpr_holdout: s.tpr_holdout, tpr_all: s.tpr_all, tnr: s.tnr, impossible_green: s.impossible_green }])) }) + '\n',
 );
 
 const pct = (x) => (x == null ? '—' : `${Math.round(x * 100)}%`);
@@ -157,4 +165,6 @@ console.log('\nWritten to scorecard/latest.json');
 const integrityFailure = Object.values(scorecard.targets).some((s) => s.impossible_green > 0);
 const falseAlarms = Object.values(scorecard.targets).some((s) => !s.pass_k_healthy);
 if (integrityFailure) console.error('\nINTEGRITY FAILURE: an impossible build passed. Investigate before trusting any result.');
-process.exit(integrityFailure ? 2 : falseAlarms ? 1 : 0);
+const errored = Object.values(scorecard.targets).some((s) => s.errors.length > 0);
+if (errored) console.error('\nINCOMPLETE: some jobs never tested their build (see errors in scorecard/latest.json). Rates above are not trustworthy.');
+process.exit(integrityFailure ? 2 : errored ? 3 : falseAlarms ? 1 : 0);

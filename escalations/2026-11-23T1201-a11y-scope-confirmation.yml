@@ -1,7 +1,6 @@
 type: unclear_requirement
 requirement_id: REQ-170
-status: answered        # open | answered | done
-waiting_on: a person to run proposals/apply-human-edits.mjs
+status: done            # open | answered | done
 raised: 2026-11-23
 test: tests/a11y/accessibility.spec.ts
 
@@ -41,3 +40,5 @@ resolution: |
   confirmation, page not found, order not found); all pass 5/5, no
   violations found. The requirement edit is in
   proposals/apply-human-edits.mjs. Set status to done once it is applied.
+
+  2026-11-25: applied and committed (21be4a8). Done.

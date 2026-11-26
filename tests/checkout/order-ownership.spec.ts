@@ -1,7 +1,7 @@
 import { test, expect, DEMO_USER, OTHER_USER, signIn } from '../../skills/fixtures';
 import { orderRequest } from '../../skills/data';
 
-// REQ-190 is a DRAFT (proposals/requirement-draft-REQ-190-order-ownership.md) until a person adds it to requirements/.
+// REQ-190: requirements/REQ-190-order-ownership.md
 test.describe('REQ-190 Order confirmation access', () => {
   test('shows an order only to the shopper who placed it', { tag: ['@REQ-190'] }, async ({ request, page }) => {
     // Shopper A places an order through the API.

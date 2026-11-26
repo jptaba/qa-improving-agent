@@ -1,7 +1,7 @@
 import { test, expect } from '../../skills/fixtures';
 import { CARDS } from '../../skills/data';
 
-// REQ-180 is a DRAFT (proposals/requirement-draft-REQ-180-single-payment.md) until a person adds it to requirements/.
+// REQ-180: requirements/REQ-180-single-payment.md
 test.describe('REQ-180 Single payment per checkout', () => {
   test('ignores repeat clicks on Pay now while a payment is in progress', { tag: ['@REQ-180'] }, async ({ signedInPage: page }) => {
     // Hold the first order request open so the "in progress" window is deterministic.

@@ -7,6 +7,8 @@
 //   total-wrong            REQ-150  totals are off by $1.00
 //   a11y-missing-label     REQ-170  the email field loses its label
 //   api-contract-drift     REQ-160  POST /api/orders returns {orderId, amount} instead of {id, total, …}
+//   double-submit          REQ-180  Pay now has no in-flight guard; repeat clicks create extra orders
+//   foreign-order-visible  REQ-190  any signed-in shopper can open another shopper's confirmation page
 //   impossible             (canary) every page returns HTTP 500; health stays up
 // The fault list is never exposed by the app itself, so evaluators can't read it.
 
@@ -117,6 +119,8 @@ function checkoutPage() {
   const clientCheck = has('expired-card-accepted')
     ? ''
     : `if (new Date() >= new Date(card.expYear, card.expMonth, 1)) { msg.textContent = 'This card has expired. Update card to continue.'; msg.hidden = false; return; }`;
+  // Planted fault double-submit (REQ-180 AC1): no in-flight guard, so repeat clicks each create an order.
+  const singlePayment = !has('double-submit');
   const script = `
 const CARDS = ${cardsJson};
 const form = document.getElementById('pay'); const msg = document.getElementById('msg');
@@ -124,11 +128,11 @@ const payBtn = form.querySelector('button[type=submit]');
 let paying = false;
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (paying) return; // one payment at a time: ignore repeat clicks while a request is in flight
+  ${singlePayment ? 'if (paying) return; // one payment at a time: ignore repeat clicks while a request is in flight' : ''}
   msg.hidden = true;
   const card = CARDS.find((c) => c.id === form.card.value);
   ${clientCheck}
-  paying = true; payBtn.disabled = true;
+  ${singlePayment ? 'paying = true; payBtn.disabled = true;' : ''}
   try {
     const res = await fetch('/api/orders', { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ cardId: card.id, items: ${JSON.stringify(CART.map(({ sku, qty }) => ({ sku, qty })))} }) });
@@ -172,7 +176,8 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const route = `${req.method} ${url.pathname}`;
 
-  if (route === 'GET /api/health') return json(res, 200, { status: 'ok' });
+  // HEAD is answered like GET (Node drops the body). pid lets a harness confirm it reached the process it started.
+  if (route === 'GET /api/health' || route === 'HEAD /api/health') return json(res, 200, { status: 'ok', pid: process.pid });
   if (has('impossible')) return send(res, 500, 'Internal Server Error', 'text/plain');
 
   switch (route) {
@@ -215,13 +220,15 @@ const server = http.createServer(async (req, res) => {
       // Only the shopper who placed an order may see it. Unknown and foreign ids look the same (404).
       const id = url.searchParams.get('id');
       const order = orders.get(id);
-      if (!order || orderOwners.get(id) !== currentUser(req)) return send(res, 404, page('Order not found', '<h1>Order not found</h1>'));
+      // Planted fault foreign-order-visible (REQ-190 AC2): any signed-in shopper can see any order.
+      const ownerOk = has('foreign-order-visible') || orderOwners.get(id) === currentUser(req);
+      if (!order || !ownerOk) return send(res, 404, page('Order not found', '<h1>Order not found</h1>'));
       return send(res, 200, confirmationPage(order));
     }
 
     default: {
       // Known API path, unsupported method: 405 with the methods that are allowed.
-      const allowed = { '/api/login': 'POST', '/api/orders': 'POST', '/api/health': 'GET' }[url.pathname];
+      const allowed = { '/api/login': 'POST', '/api/orders': 'POST', '/api/health': 'GET, HEAD' }[url.pathname];
       if (allowed) return json(res, 405, { error: 'method_not_allowed' }, { allow: allowed });
       return send(res, 404, page('Not found', '<h1>Page not found</h1>'));
     }
