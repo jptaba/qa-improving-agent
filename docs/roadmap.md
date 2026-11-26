@@ -9,7 +9,7 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 - [x] JSON test inventory keyed by requirement ID
 - [x] `AGENTS.md` map and golden principles
 - [ ] Point `BASE_URL` at your real AUT's per-PR preview (seeded DB, test keys, TTL, health-poll)
-- [ ] OpenTelemetry export from CI and agents to your trace backend (e.g. Langfuse)
+- [x] OpenTelemetry export from CI to your trace backend (e.g. Langfuse): `harness/reporters/otel-reporter.mjs`, on when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (repo secret in CI). Agent-session traces still open.
 - **Exit:** suite passes 5/5 on a healthy build (`npx playwright test --repeat-each=5`); trace link in every failure
 
 ## Phase 1: Agentic authoring
@@ -52,4 +52,5 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 - [ ] `qa-explorer` nightly; Maestro/Appium for mobile
   - First walk run by hand 2026-11-24: 2 candidate bugs escalated, `memory/app-model.proposed.json` written. Nightly schedule still open.
 - [ ] Ablation on each model upgrade (remove one harness component, re-run canary)
+  - Procedure in `docs/ablation.md`; first run due at the next model upgrade.
 - **Exit:** confirmed new bugs per month; every harness component justified
