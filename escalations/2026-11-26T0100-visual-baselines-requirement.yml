@@ -1,8 +1,8 @@
 type: unclear_requirement
 requirement_id: REQ-200
-status: answered         # open | answered | done
+status: done             # open | answered | done
 raised: 2026-11-26
-test: tests/visual/pages.spec.ts (not written yet)
+test: tests/visual/pages.spec.ts
 
 summary: |
   Visual baselines (roadmap Phase 3) need a requirement before any test
@@ -38,3 +38,6 @@ answer:
 resolution: |
   requirements/REQ-200-visual-baselines.md lands in its own PR. Tests,
   baselines and the label gate follow in the next PR.
+  Done 2026-11-26: tests/visual/pages.spec.ts with baselines from the
+  visual-baselines workflow; changes need the visual-approved label
+  (docs/visual-baselines.md).
