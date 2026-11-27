@@ -22,35 +22,38 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 ## Phase 2: Blind evaluator
 - [x] Sealed evaluator with private, requirement-tagged tests and four verdicts
 - [x] Seeded-fault catalogue + impossible canary + scorecard
-  - 2026-11-26: faults `double-submit` (REQ-180) and `foreign-order-visible` (REQ-190) planted in the demo AUT;
-    catalogue entries in `proposals/apply-roadmap-edits.mjs`. The evaluator still needs checks for both
-    (`escalations/2026-11-25T2345-*`).
+  - 2026-11-26: faults `double-submit` (REQ-180) and `foreign-order-visible` (REQ-190) planted in the demo AUT,
+    with sealed checks for both. A daily blind evaluator author (cloud task) adds checks for new requirements,
+    including on the requirement's own PR.
 - [ ] Move `sealed-acceptance/` to its own repo with its own CI token
+  - Not needed for now: the blind author works from a sparse checkout of this repo that leaves out the builder's
+    folders (`docs/autonomy-plan.md`, step 4). Revisit if that proves leaky.
 - [ ] 20–50 expert-labelled tasks in `sealed-acceptance/labels/`; report TPR and TNR separately
 - [ ] Run the evaluator on a different model family from the builders (when it uses an LLM to derive tests)
 - **Exit:** TPR and TNR reported on the held-out split; canary green-rate = 0
 
 ## Phase 3: Guarded triage + specialist stack
 - [x] `qa-triage` role with heal caps and escalation
-- [ ] Specmatic + Schemathesis against `requirements/openapi/`
-  - Done: request-body contract tests in `tests/contract/`; Schemathesis via `npm run contract:fuzz` (not yet in CI).
-  - Open: Specmatic. `contract:fuzz` passes locally (285/285, 2026-11-26); the CI job is in
-    `proposals/apply-roadmap-edits.mjs` for a person to apply.
+- [x] Schemathesis against `requirements/openapi/`: `contract-fuzz`, a required CI check; request-body contract
+  tests in `tests/contract/`
+- [ ] Specmatic (optional: Schemathesis and the contract tests already cover the one API)
 - [x] axe checks extended to every page + manual a11y checklist
   - Sign-in, checkout (with error states), order confirmation, order not found and page not found are scanned
     under REQ-170 (widened to every page, 2026-11-25); checklist in `docs/a11y-manual-checklist.md`.
 - [x] Approval-gated visual baselines (REQ-200, `docs/visual-baselines.md`)
-  - Blocked on a requirement: draft REQ-200 in `proposals/`, decision in `escalations/2026-11-26T0100-*`.
 - **Exit:** false-heal rate measured on a labelled sample; skip count at 0
 
 ## Phase 4: Outer improvement loop
 - [x] `qa-improver` and `qa-gardener` roles; playbook with hit/miss counters
-- [ ] Weekly job: cluster failures → one harness change per PR → canary on held-out split → human approval
+- [x] Weekly job: cluster failures → one harness change per PR → canary on held-out split → human approval
+  - The improver runs every Monday as a cloud task and opens one PR. `canary-gate` blocks it if the held-out
+    score or healthy TNR drops. By the owner's choice (2026-11-26) a PR that passes every check merges itself;
+    the guard files and visual baselines still need the owner.
 - **Exit:** held-out detection improves without TNR regression across consecutive cycles
 
 ## Phase 5: Expansion and ablation
-- [ ] `qa-explorer` nightly; Maestro/Appium for mobile
-  - First walk run by hand 2026-11-24: 2 candidate bugs escalated, `memory/app-model.proposed.json` written. Nightly schedule still open.
+- [x] `qa-explorer` nightly: a daily cloud task (06:00 UTC) since 2026-11-26
+- [ ] Maestro/Appium for mobile (no mobile app yet)
 - [ ] Ablation on each model upgrade (remove one harness component, re-run canary)
   - Procedure in `docs/ablation.md`; first run due at the next model upgrade.
 - **Exit:** confirmed new bugs per month; every harness component justified

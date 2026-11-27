@@ -31,18 +31,17 @@ versus `main`; an impossible build must never pass).
    Claude sessions can open PRs.
 
 ## Phases (agent work after step 1)
-- **A. Land pending work:** apply `proposals/apply-roadmap-edits.mjs`; open one PR.
-- **B. Canary gate:** `harness/ci/canary-gate.mjs` + PR job comparing the PR's scorecard with `main`'s.
-- **C. PR plumbing** (`.github/workflows/auto-merge.yml`, cloud tasks open PRs, 2026-11-26): agent branches open PRs labelled `agent-authored` and request auto-merge; the
+- **A. Land pending work (done):** apply `proposals/apply-roadmap-edits.mjs`; open one PR.
+- **B. Canary gate (done):** `harness/ci/canary-gate.mjs` + PR job comparing the PR's scorecard with `main`'s.
+- **C. PR plumbing (done;** `.github/workflows/auto-merge.yml`, cloud tasks open PRs, 2026-11-26): agent branches open PRs labelled `agent-authored` and request auto-merge; the
   cloud explorer and improver tasks switch from "push a branch" to "open a PR".
-- **D. Authoring in CI:** when `requirements/` changes on `main`, the orchestrator plans, generates and
+- **D. Authoring (done, as the daily builder cloud task rather than a CI job):** when `requirements/` changes on `main`, the builder plans, generates and
   admits tests (pass^k), updates `inventory/`, and opens a PR.
-- **E. Triage in CI:** a failing `e2e` on `main` starts `qa-triage`; heals go out as PRs, real bugs as escalations.
-- **F. Blind evaluator author:** sealed repo with its own `.claude/settings.json` (denies `tests/`, `skills/`,
-  `specs/`), a scheduled task that writes checks for any requirement the evaluator reports as
-  `could_not_verify`, and a planted fault per new requirement. First job: REQ-180 and REQ-190.
+- **E. Triage (done, same builder task; a red `main` is its first priority):** heals go out as PRs, real bugs as escalations.
+- **F. Blind evaluator author (done, a daily cloud task with a sparse checkout instead of a separate repo):** writes checks for any
+  requirement the evaluator cannot verify (also on the requirement's own PR) and a planted fault per new requirement.
 - **G. Visual baselines:** done. `tests/visual/pages.spec.ts`, baselines taken by the `visual-baselines` workflow in the CI container, changes gated by the owner's `visual-approved` label. See `docs/visual-baselines.md`.
-- **H. Requirement sync (go-live; adapters done, `docs/requirements-sync.md`, scheduling waits for credentials):** adapters that pull Jira/Confluence/OpenAPI into `requirements/`
+- **H. Requirement sync (adapters done and tested against a mock Jira/Confluence, `docs/requirements-sync.md`; scheduling waits for real sources):** adapters that pull Jira/Confluence/OpenAPI into `requirements/`
   in the existing EARS format, as a PR a person approves until trust is established.
 - **I. Observability and ablation:** OpenTelemetry reporter (done, off until an endpoint secret is set); ablation procedure in `docs/ablation.md`, run on each model upgrade.
 
