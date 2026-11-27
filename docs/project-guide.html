@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QA Agents Handbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a reference handbook. Sticky contents rail on wide screens, one reading column, tables and code scroll in place. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#17202b; --muted:#566170; --line:#dce1e7; --soft:#eef1f4;
+  --accent:#0d7a70; --accent-soft:#e3f3f1; --owner:#a65a06; --owner-soft:#fbf0e1; --bad:#b4372c; --good:#1d7a45;
+  --code-bg:#f0f3f6; --code-ink:#1d2733;
+  --f-head:"Segoe UI Variable Display","SF Pro Display",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-body:"Segoe UI Variable Text","SF Pro Text",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11161d; --surface:#171d26; --ink:#e4e8ee; --muted:#9aa5b4; --line:#2a333f; --soft:#1e2631;
+  --accent:#4cc3b5; --accent-soft:#163430; --owner:#f0a854; --owner-soft:#33261a; --bad:#f07a6e; --good:#5fcf8b;
+  --code-bg:#0d1218; --code-ink:#dfe6ee; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161d; --surface:#171d26; --ink:#e4e8ee; --muted:#9aa5b4; --line:#2a333f; --soft:#1e2631;
+  --accent:#4cc3b5; --accent-soft:#163430; --owner:#f0a854; --owner-soft:#33261a; --bad:#f07a6e; --good:#5fcf8b;
+  --code-bg:#0d1218; --code-ink:#dfe6ee; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)} a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;padding-block:32px 96px}
+.wrap>*{min-width:0}
+nav.toc{position:sticky;top:max(16px,env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 32px);overflow:auto;font-size:14px;padding-right:8px}
+nav.toc p{font:600 12px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;line-height:1.35}
+nav.toc a:hover{color:var(--ink);background:var(--soft)}
+nav.toc a.on{color:var(--ink);background:var(--soft);box-shadow:inset 2px 0 var(--accent)}
+.jump{display:none;margin-bottom:24px}
+.jump label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.jump select{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:15px var(--f-body)}
+main{max-width:780px}
+header.top{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+.eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 8px}
+h1{font:650 clamp(30px,4.4vw,42px)/1.12 var(--f-head);margin:0 0 12px;letter-spacing:-.01em;text-wrap:balance}
+.sub{font-size:18px;color:var(--muted);margin:0;max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:16px;font-size:13px;color:var(--muted)}
+h2{font:650 26px/1.2 var(--f-head);margin:56px 0 12px;padding-top:8px;scroll-margin-top:16px;text-wrap:balance}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px;font-variant-numeric:tabular-nums}
+h3{font:650 18px/1.3 var(--f-head);margin:28px 0 8px}
+p,li{max-width:68ch}
+ul,ol{padding-left:22px} li{margin:4px 0}
+code{font:.88em var(--f-mono);background:var(--code-bg);color:var(--code-ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{background:var(--code-bg);color:var(--code-ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font:13.5px/1.55 var(--f-mono);margin:12px 0 18px}
+pre code{background:none;padding:0;font-size:inherit;overflow-wrap:normal}
+pre .c{color:var(--muted)}
+.tbl{overflow-x:auto;margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12.5px;letter-spacing:.03em;color:var(--muted);font-weight:600;background:var(--soft);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td:first-child{white-space:nowrap}
+.note{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;padding:12px 16px;margin:16px 0}
+.note.owner{border-left-color:var(--owner);background:var(--owner-soft)}
+.note p{margin:0}
+.pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.pill.req{background:var(--accent-soft);color:var(--accent)}
+.pill.opt{background:var(--soft);color:var(--muted)}
+.pill.you{background:var(--owner-soft);color:var(--owner)}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0 8px;counter-reset:step}
+.flow div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;line-height:1.4;counter-increment:step}
+.flow div::before{content:counter(step);display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--surface);font-size:12px;font-weight:700;margin-bottom:6px}
+.flow b{display:block;margin-bottom:2px}
+.flow span{color:var(--muted)}
+.day{display:grid;grid-template-columns:96px minmax(0,1fr);gap:0;margin:14px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.day div{padding:10px 12px;border-bottom:1px solid var(--line);font-size:14.5px}
+.day div:nth-last-child(-n+2){border-bottom:0}
+.day .t{font:600 13px var(--f-mono);color:var(--accent);background:var(--soft);font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font:650 26px/1.1 var(--f-head);font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.good b{color:var(--good)} .stat.bad b{color:var(--bad)}
+kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (max-width:960px){.wrap{grid-template-columns:minmax(0,1fr);gap:0;padding-block:20px 72px} nav.toc{display:none} .jump{display:block}}
+@media (max-width:520px){td:first-child{white-space:normal} .day{grid-template-columns:76px minmax(0,1fr)} h2{font-size:23px}}
+@media print{nav.toc,.jump{display:none} .wrap{display:block} body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" id="toc" aria-label="Contents">
+  <p>Contents</p>
+  <a href="#what">1. What this is</a>
+  <a href="#start">2. Quick start</a>
+  <a href="#loop">3. How it runs</a>
+  <a href="#repo">4. Repository map</a>
+  <a href="#reqs">5. Requirements</a>
+  <a href="#tests">6. Tests</a>
+  <a href="#commands">7. Command reference</a>
+  <a href="#ci">8. CI pipeline</a>
+  <a href="#guards">9. Guardrails</a>
+  <a href="#referee">10. Referee and scorecard</a>
+  <a href="#agents">11. Agents</a>
+  <a href="#owner">12. The owner's job</a>
+  <a href="#escalations">13. Escalations and proposals</a>
+  <a href="#reports">14. Reports</a>
+  <a href="#real">15. Pointing it at a real app</a>
+  <a href="#trouble">16. Troubleshooting</a>
+  <a href="#glossary">17. Glossary</a>
+</nav>
+
+<main>
+<div class="jump"><label for="jump">Jump to a section</label><select id="jump"><option value="">Contents…</option></select></div>
+
+<header class="top">
+  <p class="eyebrow">Project guide · qa-improving-agent</p>
+  <h1>Self-improving QA agents, end to end</h1>
+  <p class="sub">How the harness works, how to run it on your machine and in CI, what the agents do on their own, and the few things that still need a person.</p>
+  <div class="meta"><span>Playwright 1.65.1</span><span>Node 22</span><span>Repository: github.com/jptaba/qa-improving-agent</span><span>Updated November 2026</span></div>
+</header>
+
+<h2 id="what"><span class="n">1</span>What this is</h2>
+<p>A working harness in which AI agents write, run, repair and improve Playwright tests for a web application, and get better over time <b>without grading their own work</b>. It ships with a small demo shop (sign-in, checkout, order confirmation and an orders API) whose bugs can be switched on, so the whole loop can be proven before it touches a real product.</p>
+<p>Three ideas hold it together:</p>
+<ul>
+  <li><b>Narrow agents, deterministic runs.</b> AI writes and repairs tests. Only committed Playwright code decides whether a build passes.</li>
+  <li><b>An independent referee.</b> A sealed evaluator checks the running app against the requirements only. The agents that write tests can't see it, and the agent that writes it can't see their tests.</li>
+  <li><b>Measured, not trusted.</b> A canary plants known bugs in the app and runs everything against them. A change to the harness is kept only if the scorecard does not get worse.</li>
+</ul>
+<div class="flow" aria-label="From requirement to release">
+  <div><b>Requirement</b><span>EARS acceptance criteria in <code>requirements/</code></span></div>
+  <div><b>Plan and write</b><span>Planner and generator roles produce tests</span></div>
+  <div><b>Admit</b><span>A new test must pass 5 of 5 runs</span></div>
+  <div><b>Run</b><span>Deterministic suite, no AI</span></div>
+  <div><b>Referee</b><span>Blind evaluator, requirements only</span></div>
+  <div><b>Merge</b><span>Only when every required check passes</span></div>
+</div>
+
+<h2 id="start"><span class="n">2</span>Quick start</h2>
+<p>You need Node.js 20 or later (CI uses 22) and Git. Python 3.12 is only needed for the API fuzzer. Run each line on its own; Windows PowerShell 5 does not accept <code>&amp;&amp;</code>.</p>
+<pre><code>git clone https://github.com/jptaba/qa-improving-agent.git
+cd qa-improving-agent
+npm install
+npx playwright install chromium
+
+npm test                  <span class="c"># the test suite; starts the demo app for you</span>
+npm run check:results     <span class="c"># fails on any failure, skip or flaky test</span>
+npm run selftest:hooks    <span class="c"># proves the guardrail hook blocks what it should</span></code></pre>
+<p>After <code>npm test</code>, open <code>reports/trace-report.html</code> in a browser for a one-file view of the run, or <code>npm run report</code> for Playwright's own report.</p>
+<h3>Run the referee and the scorecard</h3>
+<pre><code>npm run aut               <span class="c"># terminal 1: demo app on http://localhost:4173</span>
+npm run evaluate          <span class="c"># terminal 2: one verdict per requirement</span>
+
+npm run canary            <span class="c"># healthy runs, every planted bug, the impossible build → scorecard/latest.json</span></code></pre>
+<h3>Try a planted bug by hand</h3>
+<p>Start the app with a fault switched on, then point the suite at it.</p>
+<pre><code><span class="c"># PowerShell</span>
+$env:FAULT="total-wrong"; $env:PORT="4199"; npm run aut
+<span class="c"># second window</span>
+$env:BASE_URL="http://localhost:4199"; npx playwright test
+
+<span class="c"># macOS / Linux</span>
+FAULT=total-wrong PORT=4199 npm run aut
+BASE_URL=http://localhost:4199 npx playwright test</code></pre>
+
+<h2 id="loop"><span class="n">3</span>How it runs</h2>
+<p>Nobody has to start anything day to day. Four agents run as scheduled cloud tasks on a Claude subscription, and every change they make arrives as a pull request that CI checks. Times are UTC.</p>
+<div class="day">
+  <div class="t">06:00</div><div><b>Explorer</b> walks the app beyond the scripted journeys, updates the proposed app model and files candidate bugs as escalations.</div>
+  <div class="t">07:00</div><div><b>Builder</b> takes up to three items, in order: repair a red <code>main</code> (triage), act on answered escalations, write tests for requirements that have none. One pull request per item.</div>
+  <div class="t">08:00</div><div><b>Blind evaluator author</b> adds sealed checks to open requirement pull requests, then fills gaps on <code>main</code> and plants a fault for any requirement without one.</div>
+  <div class="t">Mon 14:00</div><div><b>Improver</b> clusters the week's failures and proposes one harness change (a playbook entry, a skill fix or a new check).</div>
+  <div class="t">Every PR</div><div><b>CI</b> runs six required checks. Pull requests labelled <code>agent-authored</code> merge themselves (squash) once all pass and the branch is up to date.</div>
+  <div class="t">Nightly</div><div><b>Canary</b> runs the suite and referee against healthy, faulty and impossible builds and uploads the scorecard.</div>
+</div>
+<div class="note"><p>CI never calls an AI model. Agents author changes; CI only runs committed code. That keeps every merge decision repeatable.</p></div>
+
+<h2 id="repo"><span class="n">4</span>Repository map</h2>
+<div class="tbl"><table>
+<tr><th>Path</th><th>What's in it</th><th>Who changes it</th></tr>
+<tr><td><code>requirements/</code></td><td>One file per requirement (<code>REQ-*.md</code>, EARS criteria) and the OpenAPI contract in <code>openapi/</code></td><td>Claude on request, in requirement-only PRs; sync adapters at go-live</td></tr>
+<tr><td><code>tests/</code></td><td>The Playwright suite: <code>login/</code>, <code>checkout/</code>, <code>contract/</code>, <code>a11y/</code>, <code>visual/</code>, <code>generated/</code></td><td>Agents, via PR</td></tr>
+<tr><td><code>specs/</code></td><td>Test plans written by the planner role</td><td>Agents</td></tr>
+<tr><td><code>skills/</code></td><td>Shared helpers: <code>fixtures.ts</code> (sign-in, fixed clock), <code>data.ts</code> (cards, cart, totals)</td><td>Agents, reviewed by CI</td></tr>
+<tr><td><code>inventory/tests.json</code></td><td>Requirement → test map that drives the authoring queue</td><td>Agents may change <code>status</code> only</td></tr>
+<tr><td><code>memory/</code></td><td>App model, playbook with hit/miss counts, failure log</td><td>Agents append; improver curates</td></tr>
+<tr><td><code>demo-aut/server.mjs</code></td><td>The demo shop and its planted bugs (<code>FAULT</code> switches)</td><td>Agents (fixes, new planted faults)</td></tr>
+<tr><td><code>harness/orchestrator/</code></td><td>Local authoring loop: queue, budgets, admission</td><td>Agents via PR</td></tr>
+<tr><td><code>harness/ci/</code></td><td>CI checks: inventory guard, requirement isolation and lint, skip/flaky gate, canary gate</td><td>Agents via PR</td></tr>
+<tr><td><code>harness/canary/</code></td><td>The planted-bug scorecard runner</td><td>Agents via PR</td></tr>
+<tr><td><code>harness/reporters/</code></td><td>Trace report and OpenTelemetry reporters</td><td>Agents via PR</td></tr>
+<tr><td><code>harness/hooks/</code>, <code>harness/config.json</code>, <code>.claude/settings.json</code></td><td><b>The guard:</b> the protect-oracle hook, the heal-diff check, the protected-path list, tool deny rules</td><td><span class="pill you">Owner only</span></td></tr>
+<tr><td><code>sealed-acceptance/</code></td><td>The referee: evaluator, its checks, the planted-fault catalogue, the impossible build</td><td>Blind evaluator author only; hidden from every other agent</td></tr>
+<tr><td><code>escalations/</code></td><td>Agent → owner questions and bug reports (YAML)</td><td>Agents write; owner answers</td></tr>
+<tr><td><code>proposals/</code></td><td>Scripts and drafts for changes only the owner may apply</td><td>Agents write; owner runs</td></tr>
+<tr><td><code>scripts/</code></td><td>API fuzzing and the requirement sync (OpenAPI, Jira, Confluence, mock)</td><td>Agents via PR</td></tr>
+<tr><td><code>scorecard/</code>, <code>reports/</code></td><td>Canary results; per-run reports (git-ignored)</td><td>Generated</td></tr>
+<tr><td><code>.github/workflows/</code></td><td><code>qa.yml</code> (CI), <code>auto-merge.yml</code>, <code>visual-baselines.yml</code></td><td>Agents via PR</td></tr>
+<tr><td><code>AGENTS.md</code>, <code>docs/</code></td><td>The agents' map and the reference docs</td><td>Anyone</td></tr>
+</table></div>
+
+<h2 id="reqs"><span class="n">5</span>Requirements</h2>
+<p>Everything starts from a requirement. Tests are tagged with it, the referee judges against it, and the scorecard counts planted bugs per requirement.</p>
+<pre><code>---
+id: REQ-180
+title: One payment per checkout
+status: in-scope            <span class="c"># in-scope | draft | out-of-scope; only in-scope gets tests</span>
+journey: Checkout
+---
+
+## Acceptance criteria (EARS)
+- **AC1:** WHILE a payment is in progress THE SYSTEM SHALL ignore further clicks on Pay now.
+- **AC2:** WHEN a payment fails THE SYSTEM SHALL let the shopper pay again.</code></pre>
+<h3>Rules CI enforces</h3>
+<ul>
+  <li><b>Well-formed</b> (<code>requirements-lint</code>): the file name starts with its id, ids are unique, status is valid, and an in-scope requirement has at least one <code>**ACn:**</code> line.</li>
+  <li><b>On its own</b> (<code>requirements-isolation</code>): a requirement change can't share a PR with tests, skills, specs, the app or the evaluator runner. The one exception is the blind author's sealed checks, so a new requirement arrives already verifiable.</li>
+</ul>
+<h3>Adding a requirement</h3>
+<ol>
+  <li>Ask Claude to write it (or edit an existing one). It opens a requirement-only PR.</li>
+  <li>The blind evaluator author adds sealed checks to that PR on its next run (08:00 UTC, or start it by hand).</li>
+  <li>Once merged, the builder writes tests for it (07:00 UTC), proves them 5 of 5, and adds an inventory row.</li>
+  <li>The blind author plants a fault for it on <code>main</code> so the scorecard can measure it.</li>
+</ol>
+<h3>Requirements from other systems</h3>
+<p>At go-live, requirements come from the systems the team already uses. <code>scripts/requirements-sync/</code> turns them into the same files, and re-syncing keeps each file's id.</p>
+<div class="tbl"><table>
+<tr><th>Source</th><th>Command</th><th>Settings</th></tr>
+<tr><td>OpenAPI / Swagger</td><td><code>node scripts/requirements-sync/index.mjs --source openapi --spec &lt;file&gt;</code></td><td>none</td></tr>
+<tr><td>Jira Cloud</td><td><code>… --source jira</code></td><td><code>JIRA_BASE_URL</code>, <code>JIRA_EMAIL</code>, <code>JIRA_API_TOKEN</code>, <code>JIRA_JQL</code>, optional <code>JIRA_AC_FIELD</code>, <code>JIRA_READY</code></td></tr>
+<tr><td>Confluence Cloud</td><td><code>… --source confluence</code></td><td><code>CONFLUENCE_BASE_URL</code>, <code>CONFLUENCE_EMAIL</code>, <code>CONFLUENCE_API_TOKEN</code>, <code>CONFLUENCE_LABEL</code>, optional <code>CONFLUENCE_READY_LABEL</code></td></tr>
+</table></div>
+<p>Add <code>--dry-run</code> to preview, and <code>--out &lt;folder&gt;</code> to write somewhere other than <code>requirements/</code>. A ticket becomes <code>in-scope</code> only when the source marks it ready and it has acceptance criteria; anything else lands as <code>draft</code>.</p>
+<p><b>No Jira or Confluence?</b> <code>npm run sync:mock</code> starts a local stand-in for both, with a made-up SHOP project, and prints the settings to use. <code>npm run test:sync</code> runs the sync end to end against it (CI does this on every PR). Always point a mock sync at a scratch folder, never at <code>requirements/</code>.</p>
+
+<h2 id="tests"><span class="n">6</span>Tests</h2>
+<h3>Conventions</h3>
+<ul>
+  <li><b>Tag every test</b> with its requirement: <code>test('…', { tag: ['@REQ-142'] }, async …)</code>.</li>
+  <li><b>Use the shared helpers.</b> <code>signedInPage</code> from <code>skills/fixtures.ts</code> gives a signed-in page with the clock fixed at 15 January 2026.</li>
+  <li><b>Locators by what a user perceives</b>: role, then label, then text. CSS and XPath are not used in new tests (<code>docs/locator-policy.md</code>).</li>
+  <li><b>No hard waits</b>, no skips, no raised timeouts. CI rejects them on agent PRs.</li>
+</ul>
+<h3>Inventory and admission</h3>
+<p>Each test has a row in <code>inventory/tests.json</code> linking it to a requirement and criterion. A new test is admitted only after it passes 5 runs in a row with retries off:</p>
+<pre><code>npx playwright test tests/generated/REQ-160.spec.ts --repeat-each=5 --retries=0</code></pre>
+<p>Agents may set a row to <code>failing</code> or <code>pending-review</code>. Only a person moves a test to <code>passing</code> after reviewing it.</p>
+<h3>Visual tests (REQ-200)</h3>
+<p><code>tests/visual/pages.spec.ts</code> compares four pages with approved screenshots at 1280×720, with the order id masked. They run only in the Linux CI container (<code>PW_VISUAL=1</code>), because fonts render differently on Windows and macOS. To take new screenshots, push a branch named <code>visual/&lt;name&gt;</code>; the <code>visual-baselines</code> workflow captures them and uploads an artifact to commit. The PR can't merge until the owner adds the <code>visual-approved</code> label.</p>
+
+<h2 id="commands"><span class="n">7</span>Command reference</h2>
+<div class="tbl"><table>
+<tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>npm run aut</code></td><td>Start the demo app on port 4173 (<code>PORT</code>, <code>FAULT</code> to change)</td></tr>
+<tr><td><code>npm test</code></td><td>Run the suite (starts the app unless <code>BASE_URL</code> is set)</td></tr>
+<tr><td><code>npx playwright test --grep @REQ-142</code></td><td>Run one requirement's tests</td></tr>
+<tr><td><code>npm run test:ui</code></td><td>Playwright's interactive UI mode</td></tr>
+<tr><td><code>npm run report</code></td><td>Open Playwright's HTML report</td></tr>
+<tr><td><code>npm run check:results</code></td><td>Fail on any failed, skipped or flaky test in the last run</td></tr>
+<tr><td><code>npm run evaluate</code></td><td>Run the blind referee against the running app</td></tr>
+<tr><td><code>npm run canary</code></td><td>Planted-bug scorecard. Options: <code>-- --k 3</code>, <code>--only suite|evaluator</code>, <code>--faults a,b</code>, <code>--parallel 2</code>, <code>--timeouts default</code></td></tr>
+<tr><td><code>npm run contract:fuzz</code></td><td>Schemathesis against the OpenAPI contract (needs Python and a running app)</td></tr>
+<tr><td><code>npm run orchestrate:dry</code></td><td>Show what the authoring loop would do, run the suite, write evidence</td></tr>
+<tr><td><code>npm run orchestrate:no-agents</code></td><td>Deterministic steps only</td></tr>
+<tr><td><code>npm run orchestrate</code></td><td>Full local loop; needs the Claude Code CLI signed in</td></tr>
+<tr><td><code>npm run selftest:hooks</code></td><td>Prove the guardrail hook blocks what it should</td></tr>
+<tr><td><code>npm run check:inventory</code></td><td>Run the inventory guard locally</td></tr>
+<tr><td><code>npm run test:sync</code></td><td>Requirement-sync unit and mock end-to-end tests</td></tr>
+<tr><td><code>npm run sync:mock</code></td><td>Start the mock Jira and Confluence on port 4180</td></tr>
+<tr><td><code>node harness/reporters/build-trace-report.mjs --out merged.html --dir &lt;folder&gt;</code></td><td>Merge trace reports from several runs or shards</td></tr>
+</table></div>
+
+<h2 id="ci"><span class="n">8</span>CI pipeline</h2>
+<p><code>.github/workflows/qa.yml</code> runs on every pull request (also when a label is added or removed), nightly, and on demand. <code>main</code> is protected: a PR must pass every required check and be up to date with <code>main</code>.</p>
+<div class="tbl"><table>
+<tr><th>Job</th><th></th><th>What it checks</th></tr>
+<tr><td><code>e2e (1)</code>, <code>e2e (2)</code></td><td><span class="pill req">Required</span></td><td>The suite in two shards inside the Playwright 1.65.1 container, including visual tests; then skipped or flaky counts as failed</td></tr>
+<tr><td><code>guardrails</code></td><td><span class="pill req">Required</span></td><td>Hook self-test, requirements lint, requirement-sync tests, inventory guard; on agent PRs also requirement isolation and the heal-diff check</td></tr>
+<tr><td><code>blind-evaluator</code></td><td><span class="pill req">Required</span></td><td>The sealed referee's verdict for every in-scope requirement</td></tr>
+<tr><td><code>contract-fuzz</code></td><td><span class="pill req">Required</span></td><td>Schemathesis property-based fuzzing against <code>requirements/openapi/orders.yaml</code></td></tr>
+<tr><td><code>canary-gate</code></td><td><span class="pill req">Required</span></td><td>Runs the canary on the PR and on <code>main</code>; fails if the held-out catch rate or the healthy pass rate drops, or an impossible build passes</td></tr>
+<tr><td><code>trace-report</code></td><td><span class="pill opt">Report</span></td><td>Merges both shards into one <b>trace-report</b> artifact</td></tr>
+<tr><td><code>canary</code></td><td><span class="pill opt">Nightly</span></td><td>Full canary with k = 3; uploads the scorecard</td></tr>
+<tr><td><code>enable-auto-merge</code></td><td><span class="pill opt">Agent PRs</span></td><td>From <code>auto-merge.yml</code>: turns on squash auto-merge for <code>agent-authored</code> PRs</td></tr>
+<tr><td><code>capture</code></td><td><span class="pill opt">visual/**</span></td><td>From <code>visual-baselines.yml</code>: takes REQ-200 screenshots in the container</td></tr>
+</table></div>
+
+<h2 id="guards"><span class="n">9</span>Guardrails</h2>
+<p>Rules are enforced by software at two points: while an agent works (hooks and deny rules) and on every PR (CI). Prompts only explain them.</p>
+<div class="tbl"><table>
+<tr><th>Guard</th><th>Where</th><th>What it stops</th></tr>
+<tr><td>protect-oracle hook</td><td><code>harness/hooks/</code>, wired in <code>.claude/settings.json</code></td><td>Any agent tool call that reads the sealed referee or writes a protected path</td></tr>
+<tr><td>Deny rules</td><td><code>.claude/settings.json</code></td><td>Reading or editing the referee, editing the guard files, <code>gh pr merge</code>, <code>curl</code>, <code>wget</code></td></tr>
+<tr><td>Heal-diff check</td><td><code>harness/hooks/heal-diff-check.mjs</code></td><td>Removed or changed <code>expect</code>, new <code>skip</code>/<code>fixme</code>, <code>waitForTimeout</code>, timeouts above 15 s, changes to the guard, referee and tests in the same PR, screenshots without <code>visual-approved</code></td></tr>
+<tr><td>Inventory guard</td><td><code>harness/ci/inventory-guard.mjs</code></td><td>Inventory edits beyond <code>status</code>, and new rows that start as <code>passing</code></td></tr>
+<tr><td>Requirement isolation</td><td><code>harness/ci/requirements-isolation.mjs</code></td><td>Moving a requirement and the work graded against it together</td></tr>
+<tr><td>Requirements lint</td><td><code>harness/ci/requirements-lint.mjs</code></td><td>Duplicate ids, bad file names, in-scope requirements with no criteria</td></tr>
+<tr><td>Skip/flaky gate</td><td><code>harness/ci/fail-on-skip-or-flaky.mjs</code></td><td>A run that is "green" only because tests were skipped or passed on retry</td></tr>
+<tr><td>Canary gate</td><td><code>harness/ci/canary-gate.mjs</code></td><td>Any change that makes the scorecard worse than <code>main</code></td></tr>
+<tr><td>Branch protection</td><td>GitHub</td><td>Merging without every required check, or from an out-of-date branch</td></tr>
+</table></div>
+
+<h2 id="referee"><span class="n">10</span>Referee and scorecard</h2>
+<h3>The blind evaluator</h3>
+<p><code>sealed-acceptance/</code> reads only <code>requirements/</code> and the app's URL, and returns one of four verdicts per requirement: <b>pass</b>, <b>fail</b>, <b>unknown</b> or <b>could not verify</b>. The last two go to a person. Its checks are written by the blind evaluator author, whose checkout leaves out <code>tests/</code>, <code>skills/</code>, <code>specs/</code>, <code>memory/</code> and <code>inventory/</code>.</p>
+<h3>Planted bugs</h3>
+<p>The demo app has one switchable bug per requirement, plus an impossible build. Each is assigned to the <b>optimisation</b> split (the improver may tune against it) or the <b>held-out</b> split (it may not).</p>
+<div class="tbl"><table>
+<tr><th>FAULT switch</th><th>Requirement</th><th>What breaks</th></tr>
+<tr><td><code>login-error-missing</code></td><td>REQ-101</td><td>No error message on a wrong password</td></tr>
+<tr><td><code>expired-card-accepted</code></td><td>REQ-142</td><td>Expired cards are accepted</td></tr>
+<tr><td><code>total-wrong</code></td><td>REQ-150</td><td>Totals are off by $1.00</td></tr>
+<tr><td><code>api-contract-drift</code></td><td>REQ-160</td><td>The orders API returns the wrong field names</td></tr>
+<tr><td><code>a11y-missing-label</code></td><td>REQ-170</td><td>The email field loses its label</td></tr>
+<tr><td><code>double-submit</code></td><td>REQ-180</td><td>Repeat clicks on Pay now create extra orders</td></tr>
+<tr><td><code>foreign-order-visible</code></td><td>REQ-190</td><td>A shopper can open another shopper's order</td></tr>
+<tr><td><code>impossible</code></td><td>canary</td><td>Every page returns HTTP 500; must never pass</td></tr>
+</table></div>
+<h3>Reading the scorecard</h3>
+<p>A planted bug counts as <b>caught</b> only when a check for its own requirement fails. Failures elsewhere are reported as "flagged", not caught.</p>
+<div class="tbl"><table>
+<tr><th>Metric</th><th>Meaning</th><th>Target</th></tr>
+<tr><td><code>tpr_holdout</code></td><td>Held-out planted bugs caught on their own requirement</td><td>Must not drop</td></tr>
+<tr><td><code>tpr_all</code></td><td>The same across all planted bugs</td><td>Informational</td></tr>
+<tr><td><code>tnr</code></td><td>Healthy runs that passed first time (1 − false-alarm rate)</td><td>100%</td></tr>
+<tr><td><code>pass_k_healthy</code></td><td>Every one of k healthy runs passed</td><td>true</td></tr>
+<tr><td><code>impossible_green</code></td><td>Impossible builds reported as passing</td><td>0, always</td></tr>
+</table></div>
+<h3>Latest scorecard</h3>
+<div class="stats">
+  <div class="stat good"><b>7 / 7</b><span>planted bugs caught by the suite</span></div>
+  <div class="stat good"><b>7 / 7</b><span>caught by the blind referee</span></div>
+  <div class="stat good"><b>6 / 6</b><span>healthy runs passed first time</span></div>
+  <div class="stat good"><b>0</b><span>impossible builds passed</span></div>
+</div>
+<p style="font-size:14px;color:var(--muted)">Canary of 27 November 2026 on the demo app: k = 3 healthy runs per target, 7 planted bugs (held-out and optimisation both 100%), 1 impossible build, 162 s on 4 parallel workers. Run <code>npm run canary</code> for your own numbers.</p>
+
+<h2 id="agents"><span class="n">11</span>Agents</h2>
+<h3>Scheduled cloud tasks</h3>
+<div class="tbl"><table>
+<tr><th>Task</th><th>When (UTC)</th><th>What it does</th></tr>
+<tr><td>Explorer</td><td>Daily 06:00</td><td>Walks the app, proposes app-model updates, files candidate bugs</td></tr>
+<tr><td>Builder</td><td>Daily 07:00</td><td>Triage of a red <code>main</code>, answered escalations, tests for uncovered requirements; up to three PRs</td></tr>
+<tr><td>Blind evaluator author</td><td>Daily 08:00</td><td>Sealed checks for requirement PRs and gaps on <code>main</code>; planted faults for new requirements</td></tr>
+<tr><td>Improver</td><td>Mondays 14:00</td><td>One harness improvement per PR, kept only if the canary gate passes</td></tr>
+</table></div>
+<p>They run on Sonnet in Anthropic's cloud with no connectors, open PRs labelled <code>agent-authored</code>, and can't merge. Manage them at <code>claude.ai/code</code> (scheduled tasks), or ask Claude Code to run one now.</p>
+<h3>Local roles</h3>
+<p>The same work can be done locally by role definitions in <code>.claude/agents/</code>, each with its own tool allow-list: <code>qa-planner</code> (requirement → plan), <code>qa-generator</code> (plan → tests), <code>qa-triage</code> (classify a failure, heal locators or escalate), <code>qa-explorer</code>, <code>qa-improver</code> and <code>qa-gardener</code> (proposes removing duplicate or chronically flaky tests). <code>npm run orchestrate</code> drives the planner and generator with budgets and the admission check.</p>
+
+<h2 id="owner"><span class="n">12</span>The owner's job</h2>
+<div class="note owner"><p>Almost everything merges on its own. These are the only things that wait for a person.</p></div>
+<div class="tbl"><table>
+<tr><th>What</th><th>How you'll notice</th><th>What to do</th></tr>
+<tr><td>Answer an escalation</td><td>A new file in <code>escalations/</code> with <code>status: open</code></td><td>Fill in <code>answer</code>, set <code>status: answered</code>. The builder acts on it and marks it done.</td></tr>
+<tr><td>Approve new screenshots</td><td>A PR whose guardrails check fails on <code>-snapshots/</code> files</td><td>Look at the images under "Files changed", then add the <code>visual-approved</code> label</td></tr>
+<tr><td>Review generated tests</td><td>Inventory rows with <code>pending-review</code></td><td>Read the test; set the row to <code>passing</code> in a PR of your own</td></tr>
+<tr><td>Change the guard</td><td>A script in <code>proposals/</code></td><td>Read it, run it with <code>node</code>, commit on a branch, and merge the PR yourself (no <code>agent-authored</code> label)</td></tr>
+<tr><td>Merge your own PRs</td><td>PRs without the <code>agent-authored</code> label</td><td>Merge on GitHub once checks pass; use "Update branch" if it is behind</td></tr>
+</table></div>
+
+<h2 id="escalations"><span class="n">13</span>Escalations and proposals</h2>
+<p>An escalation is how an agent says "this needs a person" instead of forcing a pass. Reporting a real bug counts as a success.</p>
+<pre><code>type: aut_bug              <span class="c"># aut_bug | needs_human | unclear_requirement</span>
+requirement_id: REQ-142
+status: open               <span class="c"># open → answered (you) → done (agent)</span>
+test: tests/checkout/expired-card.spec.ts
+summary: |
+  Expired card accepted at checkout.
+evidence: reports/artifacts/…/trace.zip
+answer:
+  decision:                <span class="c"># you fill this in</span>
+  notes: |</code></pre>
+<p>A <b>proposal</b> is for changes agents may not make themselves, usually to the guard. It is a reviewed script you run once, for example <code>node proposals/update-heal-diff-check.mjs</code>. Each one prints what it changed and is safe to run twice.</p>
+
+<h2 id="reports"><span class="n">14</span>Reports</h2>
+<div class="tbl"><table>
+<tr><th>Report</th><th>Where</th><th>Use it for</th></tr>
+<tr><td>Trace report</td><td><code>reports/trace-report.html</code>; CI artifact <b>trace-report</b></td><td>One file: summary, worker timeline, results by requirement, step waterfall per attempt, links to Playwright traces</td></tr>
+<tr><td>Playwright HTML</td><td><code>reports/html/</code> (<code>npm run report</code>)</td><td>Playwright's own viewer</td></tr>
+<tr><td>JSON and JUnit</td><td><code>reports/results.json</code>, <code>reports/junit.xml</code></td><td>Tools and dashboards</td></tr>
+<tr><td>Playwright traces</td><td><code>reports/artifacts/**/trace.zip</code> (kept on first retry)</td><td><code>npx playwright show-trace &lt;file&gt;</code> or trace.playwright.dev</td></tr>
+<tr><td>Scorecard</td><td><code>scorecard/latest.json</code>, <code>history.jsonl</code></td><td>Catch rate, false alarms, integrity</td></tr>
+<tr><td>Referee verdicts</td><td>CI artifact <b>acceptance-verdicts</b></td><td>Per-requirement verdicts and evidence</td></tr>
+<tr><td>OpenTelemetry</td><td>Off until <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> is set</td><td>Sending a trace per run to Langfuse, Tempo, Honeycomb or Jaeger</td></tr>
+</table></div>
+
+<h2 id="real"><span class="n">15</span>Pointing it at a real app</h2>
+<ol>
+  <li><b>Preview per change.</b> Give each PR a deployed preview with a seeded database and test-only keys, and pass its URL as <code>BASE_URL</code> to the <code>e2e</code>, <code>blind-evaluator</code> and <code>contract-fuzz</code> jobs. With <code>BASE_URL</code> set, Playwright stops starting the demo app.</li>
+  <li><b>Requirements.</b> Sync them from the app's OpenAPI spec, Jira or Confluence (section 5) as requirement-only PRs.</li>
+  <li><b>Helpers.</b> Replace <code>skills/fixtures.ts</code> sign-in and <code>skills/data.ts</code> with the real app's flows and test data.</li>
+  <li><b>Planted bugs.</b> On a real app these become fault injection: feature flags, mocked error responses or <code>page.route</code> failures. Keep at least one per requirement and roughly half held out.</li>
+  <li><b>Calibrate the referee.</b> Have a domain expert label 20–50 real pass/fail cases and report catch rate and false alarms on them separately.</li>
+  <li><b>Secrets.</b> Add Jira or Confluence tokens and any OTel endpoint as repository or cloud-task secrets, never in files.</li>
+</ol>
+
+<h2 id="trouble"><span class="n">16</span>Troubleshooting</h2>
+<div class="tbl"><table>
+<tr><th>Symptom</th><th>Cause and fix</th></tr>
+<tr><td><code>The token '&amp;&amp;' is not a valid statement separator</code></td><td>Windows PowerShell 5. Run each command on its own line, or use <code>;</code>.</td></tr>
+<tr><td><code>gh</code> is not recognized</td><td>Install the GitHub CLI (<code>winget install --id GitHub.cli</code>), open a new terminal, run <code>gh auth login</code>.</td></tr>
+<tr><td>PR shows "behind" and won't merge</td><td><code>main</code> moved. Click "Update branch" or run <code>gh pr update-branch &lt;n&gt;</code>.</td></tr>
+<tr><td>guardrails fails with "visual baseline changed"</td><td>Working as intended: screenshots need the owner's <code>visual-approved</code> label.</td></tr>
+<tr><td>guardrails fails with "the guard itself changed"</td><td>An agent PR touched an owner-only file. Close it, or apply the change yourself from a proposal.</td></tr>
+<tr><td>Visual test fails with "snapshot doesn't exist"</td><td>No approved screenshot yet. Push to a <code>visual/**</code> branch and commit the <code>visual-baselines</code> artifact.</td></tr>
+<tr><td><code>canary-gate</code> fails</td><td>The PR lowered the held-out catch rate or a healthy run failed. Open the <b>canary-gate-scorecards</b> artifact to compare head and base.</td></tr>
+<tr><td>Browser missing in CI</td><td>The container tag must match the Playwright version in <code>package-lock.json</code> exactly (both 1.65.1).</td></tr>
+<tr><td>An agent's tool call is "BLOCKED by protect-oracle"</td><td>It tried to touch the referee or the guard. Write an escalation or a proposal instead.</td></tr>
+<tr><td>Trace report looks wrong</td><td>Reports keep the drawing code they were built with. Re-run the tests, or download a newer CI artifact.</td></tr>
+</table></div>
+
+<h2 id="glossary"><span class="n">17</span>Glossary</h2>
+<div class="tbl"><table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>AUT</td><td>Application under test; here the demo shop in <code>demo-aut/</code></td></tr>
+<tr><td>EARS</td><td>A sentence pattern for criteria: "WHEN … THE SYSTEM SHALL …"</td></tr>
+<tr><td>Admission</td><td>The rule that a new test must pass k = 5 runs in a row before it counts</td></tr>
+<tr><td>pass^k</td><td>All of k runs pass; the false-alarm guard for healthy builds</td></tr>
+<tr><td>Planted bug / fault</td><td>A deliberate bug switched on with <code>FAULT</code>, used to measure detection</td></tr>
+<tr><td>Held-out split</td><td>Planted bugs the improver may not tune against; the honest score</td></tr>
+<tr><td>TPR / TNR</td><td>Share of planted bugs caught / share of healthy runs passed</td></tr>
+<tr><td>Impossible build</td><td>A build that can't work; if it ever passes, the harness is broken</td></tr>
+<tr><td>Heal</td><td>A fix to how a test finds an element, never to what it checks</td></tr>
+<tr><td>Guard</td><td>The owner-only files: hooks, protected-path config, tool settings</td></tr>
+<tr><td>Sealed</td><td>Hidden from the agents that build and repair tests</td></tr>
+</table></div>
+
+<footer>
+  <p>Further reading in the repository: <code>AGENTS.md</code> (rules for agents), <code>docs/autonomy-plan.md</code>, <code>docs/roadmap.md</code>, <code>docs/requirements-sync.md</code>, <code>docs/visual-baselines.md</code>, <code>docs/trace-report.md</code>, <code>docs/ablation.md</code>, and the leadership briefing in <code>docs/research/leadership-briefing.html</code>.</p>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  var links=[].slice.call(document.querySelectorAll('#toc a'));
+  var sel=document.getElementById('jump');
+  links.forEach(function(a){var o=document.createElement('option');o.value=a.getAttribute('href');o.textContent=a.textContent;sel.appendChild(o);});
+  sel.addEventListener('change',function(){if(sel.value){location.hash=sel.value;sel.value='';}});
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  function spy(){var cur=secs[0];secs.forEach(function(s){if(s&&s.getBoundingClientRect().top<=80)cur=s;});
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4)cur=secs[secs.length-1];
+    links.forEach(function(l){l.classList.toggle('on',cur&&l.getAttribute('href')==='#'+cur.id);});}
+  window.addEventListener('scroll',spy,{passive:true});spy();
+})();
+</script>
+</body>
+</html>

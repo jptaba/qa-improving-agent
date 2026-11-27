@@ -9,3 +9,4 @@
 {"at":"2026-11-25T17:13:14.320Z","k":3,"wall_seconds":234.6,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0}}}
 {"at":"2026-11-26T04:42:55.119Z","metric_version":2,"k":3,"wall_seconds":121.7,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":0,"impossible_green":0}}}
 {"at":"2026-11-26T15:23:54.420Z","metric_version":2,"k":3,"wall_seconds":143,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":0.75,"tpr_all":0.7142857142857143,"tnr":0,"impossible_green":0}}}
+{"at":"2026-11-27T01:36:54.202Z","metric_version":2,"k":3,"wall_seconds":162.1,"targets":{"suite":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0},"evaluator":{"tpr_holdout":1,"tpr_all":1,"tnr":1,"impossible_green":0}}}
