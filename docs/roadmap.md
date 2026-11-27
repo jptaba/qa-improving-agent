@@ -39,7 +39,7 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 - [x] axe checks extended to every page + manual a11y checklist
   - Sign-in, checkout (with error states), order confirmation, order not found and page not found are scanned
     under REQ-170 (widened to every page, 2026-11-25); checklist in `docs/a11y-manual-checklist.md`.
-- [ ] Approval-gated visual baselines
+- [x] Approval-gated visual baselines (REQ-200, `docs/visual-baselines.md`)
   - Blocked on a requirement: draft REQ-200 in `proposals/`, decision in `escalations/2026-11-26T0100-*`.
 - **Exit:** false-heal rate measured on a labelled sample; skip count at 0
 

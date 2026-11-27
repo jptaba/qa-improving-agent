@@ -30,6 +30,7 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shard }}/2
         env:
           PW_JSON_OUTPUT: reports/results-${{ matrix.shard }}.json
+          PW_VISUAL: '1' # REQ-200 screenshots run only in this container
           # Optional trace export: set these repository secrets to send one trace per run (empty = off).
           OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
           OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
@@ -93,6 +94,8 @@ jobs:
           rm -f scorecard/latest.json
           node harness/canary/run-canary.mjs --k 2 || true
           cp scorecard/latest.json /tmp/head.json || true
+        env:
+          PW_VISUAL: '1'
       - name: Canary on the base branch
         run: |
           git worktree add /tmp/base origin/${{ github.base_ref }}
@@ -163,6 +166,8 @@ jobs:
       - run: npm ci
       - name: Planted bugs + impossible builds + healthy pass^k
         run: node harness/canary/run-canary.mjs --k 3
+        env:
+          PW_VISUAL: '1'
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:

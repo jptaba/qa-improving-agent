@@ -1,0 +1,30 @@
+name: visual-baselines
+
+# Takes the REQ-200 screenshots in the same Linux container that checks them, and uploads them as the
+# "visual-baselines" artifact. Nothing is committed here: whoever commits them opens a PR, and that PR
+# can merge only with the owner's visual-approved label (REQ-200 AC2, enforced by heal-diff-check).
+# Runs on pushes to visual/** branches, or by hand on any branch.
+on:
+  push:
+    branches: ['visual/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - name: Capture screenshots
+        run: npx playwright test --project=visual --update-snapshots=all
+        env:
+          PW_VISUAL: '1'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: tests/visual/
+          retention-days: 14
