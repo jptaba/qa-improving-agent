@@ -9,6 +9,8 @@
 //   api-contract-drift     REQ-160  POST /api/orders returns {orderId, amount} instead of {id, total, …}
 //   double-submit          REQ-180  Pay now has no in-flight guard; repeat clicks create extra orders
 //   foreign-order-visible  REQ-190  any signed-in shopper can open another shopper's confirmation page
+//   expiry-month-early     REQ-142  a card counts as expired during its own expiry month (AC3)
+//   layout-overflow        REQ-200  the checkout page overflows horizontally at 1280x720
 //   impossible             (canary) every page returns HTTP 500; health stays up
 // The fault list is never exposed by the app itself, so evaluators can't read it.
 
@@ -40,7 +42,7 @@ const cartTotal = () => {
 };
 const money = (n) => `$${n.toFixed(2)}`;
 // A card is valid through the last day of its expiry month.
-const isExpired = (card, now = new Date()) => now >= new Date(card.expYear, card.expMonth, 1);
+const isExpired = (card, now = new Date()) => now >= new Date(card.expYear, has('expiry-month-early') ? card.expMonth - 1 : card.expMonth, 1);
 const pad = (n) => String(n).padStart(2, '0');
 
 function page(title, body, script = '') {
@@ -59,6 +61,7 @@ function page(title, body, script = '') {
   th,td{text-align:left;padding:8px;border-bottom:1px solid #dde}
   fieldset{border:1px solid #dde;border-radius:8px;margin-top:16px}
   .opt{display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:400}
+  ${has('layout-overflow') ? 'table{min-width:1500px}' : ''}
   [role=alert]{margin-top:14px;padding:10px;border-radius:8px;background:#fde8e8;color:#8a1111}
 </style>
 </head>
@@ -118,7 +121,7 @@ function checkoutPage() {
   const cardsJson = JSON.stringify(CARDS.map(({ id, expMonth, expYear }) => ({ id, expMonth, expYear })));
   const clientCheck = has('expired-card-accepted')
     ? ''
-    : `if (new Date() >= new Date(card.expYear, card.expMonth, 1)) { msg.textContent = 'This card has expired. Update card to continue.'; msg.hidden = false; return; }`;
+    : `if (new Date() >= new Date(card.expYear, ${has('expiry-month-early') ? 'card.expMonth - 1' : 'card.expMonth'}, 1)) { msg.textContent = 'This card has expired. Update card to continue.'; msg.hidden = false; return; }`;
   // Planted fault double-submit (REQ-180 AC1): no in-flight guard, so repeat clicks each create an order.
   const singlePayment = !has('double-submit');
   const script = `

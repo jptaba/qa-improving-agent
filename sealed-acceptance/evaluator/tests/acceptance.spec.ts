@@ -114,3 +114,21 @@ test('REQ-170 AC2: every sign-in form field has an accessible name', { tag: ['@R
   );
   expect(unnamed, 'inputs without an accessible name').toBe(0);
 });
+
+// ---------- REQ-142 AC3: valid through the last day of the expiry month ----------
+test('REQ-142 AC3: a card is still valid on the last day of its expiry month', { tag: ['@REQ-142'] }, async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2030-12-31T12:00:00'));
+  await login(page);
+  await page.getByRole('radio', { name: /expires 12\/2030/ }).check();
+  await page.getByRole('button', { name: /pay now/i }).click();
+  await expect(page.getByRole('heading', { name: 'Order confirmed' })).toBeVisible();
+});
+
+test('REQ-142 AC3: a card is expired from the first day after its expiry month', { tag: ['@REQ-142'] }, async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2031-01-01T12:00:00'));
+  await login(page);
+  await page.getByRole('radio', { name: /expires 12\/2030/ }).check();
+  await page.getByRole('button', { name: /pay now/i }).click();
+  await expect(page.getByText('This card has expired. Update card to continue.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
+});
