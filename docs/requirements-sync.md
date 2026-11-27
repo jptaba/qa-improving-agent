@@ -31,6 +31,34 @@ Add `--dry-run` to see what would change without writing.
   name does not match its id, or an in-scope requirement has no ACs.
 - Edit a synced requirement at its source; local edits are overwritten on the next sync.
 
+## Testing without Jira or Confluence
+There is no real Jira or Confluence for this project, so both are mocked.
+`scripts/requirements-sync/mock-atlassian.mjs` is a small local server that answers the same endpoints
+the adapters call, with the documented response shapes, Basic auth, and small pages so paging is always
+exercised. Its content is a made-up `SHOP` project in `scripts/requirements-sync/fixtures/`:
+
+| Fixture | Shows |
+| --- | --- |
+| SHOP-101 | ACs in a custom field (`customfield_10042`), status Ready → in-scope |
+| SHOP-102 | Given/When/Then in the description, `qa-ready` label → in-scope |
+| SHOP-103 | "Acceptance criteria" list, status To Do → draft |
+| SHOP-104 | Ready but no ACs → draft |
+| SHOP-105, OPS-1 | outside the JQL, never synced |
+| Confluence 9001, 9003 | `qa-requirement` + `qa-ready` → in-scope (9003 has `&ndash;` in its text) |
+| Confluence 9002 | no `qa-ready` → draft |
+| Confluence 9004 | no `qa-requirement` label, never synced |
+
+- `npm run test:sync` runs the unit tests and the end-to-end tests (`mock.test.mjs`). The end-to-end tests
+  start the mock, run the CLI over HTTP, and check filtering, paging, ready/draft, stable ids on re-sync, a
+  changed ticket updating its file, and that bad credentials or unsupported JQL fail without writing anything.
+  CI runs them in `guardrails`.
+- To try it by hand, run `npm run sync:mock` in one terminal. It prints the settings to use. Then, in a
+  second terminal, set those settings and run the sync with `--out` pointing at a scratch folder, plus
+  `--dry-run`. Never point it at `requirements/`: the fixtures are not real requirements.
+
+The mock supports only JQL clauses joined by `AND`, each `project = X`, `labels = X` or `status = "X"`.
+
 ## Scheduling it
-Not scheduled yet: it needs the Jira/Confluence credentials of the live team. When they exist, add them as
-secrets of a cloud scheduled task (or GitHub Actions secrets) that runs the sync daily and opens the PR.
+Not scheduled: there is no live Jira or Confluence. When there is, add their settings as secrets of a cloud
+scheduled task (or GitHub Actions secrets) that runs the sync daily and opens a requirement-only PR. Nothing
+else changes, because the mock serves the same endpoints and shapes.

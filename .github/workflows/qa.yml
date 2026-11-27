@@ -60,8 +60,8 @@ jobs:
       - name: Requirements are well-formed with unique ids
         run: node harness/ci/requirements-lint.mjs
       - run: npm ci
-      - name: Requirement sync adapters (unit tests)
-        run: node --test scripts/requirements-sync/sync.test.mjs
+      - name: Requirement sync (unit tests, and end to end against the mock Jira/Confluence)
+        run: node --test "scripts/requirements-sync/*.test.mjs"
       - name: Inventory guard (only status may change, unless the requirement changed)
         run: node harness/ci/inventory-guard.mjs
         env:

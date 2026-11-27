@@ -1,0 +1,107 @@
+{
+  "_comment": "Made-up Jira issues for the mock (scripts/requirements-sync/mock-atlassian.mjs). Fields use Jira Cloud REST v3 shapes; descriptions and the AC custom field are Atlassian Document Format.",
+  "issues": [
+    {
+      "id": "10101",
+      "key": "SHOP-101",
+      "fields": {
+        "summary": "Remember the shopper's email on the sign-in page",
+        "status": { "name": "Ready" },
+        "labels": ["qa-sync"],
+        "components": [{ "name": "Sign in" }],
+        "description": { "type": "doc", "version": 1, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Returning shoppers should not have to type their email again." }] }] },
+        "customfield_10042": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "bulletList",
+              "content": [
+                { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "WHEN a shopper signs in with \"Remember me\" ticked THE SYSTEM SHALL prefill their email on the next visit to sign-in." }] }] },
+                { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "WHEN a shopper signs in without \"Remember me\" THE SYSTEM SHALL leave the email field empty on the next visit." }] }] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "10102",
+      "key": "SHOP-102",
+      "fields": {
+        "summary": "Gift message at checkout",
+        "status": { "name": "In Progress" },
+        "labels": ["qa-sync", "qa-ready"],
+        "components": [{ "name": "Checkout" }, { "name": "Confirmation" }],
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            { "type": "paragraph", "content": [{ "type": "text", "text": "Given a signed-in shopper on checkout" }] },
+            { "type": "paragraph", "content": [{ "type": "text", "text": "When they enter a gift message and pay" }] },
+            { "type": "paragraph", "content": [{ "type": "text", "text": "Then the confirmation page shows the message" }] },
+            { "type": "paragraph", "content": [{ "type": "text", "text": "Given a gift message longer than 200 characters" }] },
+            { "type": "paragraph", "content": [{ "type": "text", "text": "Then Pay now is disabled and the limit is shown" }] }
+          ]
+        }
+      }
+    },
+    {
+      "id": "10103",
+      "key": "SHOP-103",
+      "fields": {
+        "summary": "Order history page",
+        "status": { "name": "To Do" },
+        "labels": ["qa-sync"],
+        "components": [],
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "Acceptance criteria" }] },
+            {
+              "type": "bulletList",
+              "content": [
+                { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "lists the shopper's orders, newest first" }] }] },
+                { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "never shows another shopper's orders" }] }] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "10104",
+      "key": "SHOP-104",
+      "fields": {
+        "summary": "Faster checkout (needs refinement)",
+        "status": { "name": "Ready" },
+        "labels": ["qa-sync"],
+        "components": [],
+        "description": { "type": "doc", "version": 1, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Make checkout feel quicker. Details to follow." }] }] }
+      }
+    },
+    {
+      "id": "10105",
+      "key": "SHOP-105",
+      "fields": {
+        "summary": "Internal: rotate the payment provider key",
+        "status": { "name": "Ready" },
+        "labels": ["ops"],
+        "components": [],
+        "description": { "type": "doc", "version": 1, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "THE SYSTEM SHALL use the new key." }] }] }
+      }
+    },
+    {
+      "id": "20001",
+      "key": "OPS-1",
+      "fields": {
+        "summary": "Another project's ticket",
+        "status": { "name": "Ready" },
+        "labels": ["qa-sync"],
+        "components": [],
+        "description": { "type": "doc", "version": 1, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "THE SYSTEM SHALL not be synced." }] }] }
+      }
+    }
+  ]
+}

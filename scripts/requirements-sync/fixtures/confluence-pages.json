@@ -1,0 +1,37 @@
+{
+  "_comment": "Made-up Confluence pages for the mock (scripts/requirements-sync/mock-atlassian.mjs). Bodies are Confluence storage format (XHTML).",
+  "pages": [
+    {
+      "id": "9001",
+      "space": "SHOP",
+      "title": "Checkout keyboard access",
+      "version": 3,
+      "labels": ["qa-requirement", "qa-ready"],
+      "body": "<p>Shoppers who use a keyboard must be able to pay.</p><h2>Acceptance criteria</h2><ul><li>THE SYSTEM SHALL let a shopper reach every checkout control with the Tab key.</li><li>WHEN focus is on a payment method THE SYSTEM SHALL select it with the Space key.</li></ul><h2>Notes</h2><p>From the 2026 accessibility review.</p>"
+    },
+    {
+      "id": "9002",
+      "space": "SHOP",
+      "title": "Retry a declined payment",
+      "version": 1,
+      "labels": ["qa-requirement"],
+      "body": "<h2>Acceptance criteria</h2><p>Given a declined card</p><p>When the shopper picks another card and pays</p><p>Then one order is placed</p>"
+    },
+    {
+      "id": "9003",
+      "space": "SHOP",
+      "title": "Confirmation page shows delivery estimate",
+      "version": 7,
+      "labels": ["qa-requirement", "qa-ready"],
+      "body": "<h2>Acceptance criteria</h2><ul><li>WHEN an order is confirmed THE SYSTEM SHALL show a delivery estimate of 3&ndash;5 working days.</li></ul>"
+    },
+    {
+      "id": "9004",
+      "space": "TEAM",
+      "title": "Team onboarding",
+      "version": 12,
+      "labels": ["onboarding"],
+      "body": "<p>THE SYSTEM SHALL not be synced: this page has no qa-requirement label.</p>"
+    }
+  ]
+}

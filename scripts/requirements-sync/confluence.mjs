@@ -14,13 +14,14 @@ export function storageToText(html) {
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<li[^>]*>/gi, '- ')
     .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+      if (e[0] === '#') return String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : Number(e.slice(1)));
+      return ENTITIES[e.toLowerCase()] ?? m;
+    });
 }
+
+// Named entities Confluence's editor writes into storage format. Decoded in one pass, so "&amp;lt;" stays "&lt;".
+const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", ndash: '–', mdash: '—', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”', bull: '•', middot: '·', times: '×', euro: '€', pound: '£', copy: '©', reg: '®', trade: '™' };
 
 export function pageToRequirement(page, { baseUrl, readyLabel, labels }) {
   const text = storageToText(page.body?.storage?.value);
