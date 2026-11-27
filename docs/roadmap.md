@@ -10,6 +10,7 @@ Tick items as they land. Move to the next phase only when its exit criteria are 
 - [x] `AGENTS.md` map and golden principles
 - [ ] Point `BASE_URL` at your real AUT's per-PR preview (seeded DB, test keys, TTL, health-poll)
 - [x] OpenTelemetry export from CI to your trace backend (e.g. Langfuse): `harness/reporters/otel-reporter.mjs`, on when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (repo secret in CI). Agent-session traces still open.
+- [x] Without a backend: a standalone HTML trace report for every run, merged across CI shards (`docs/trace-report.md`)
 - **Exit:** suite passes 5/5 on a healthy build (`npx playwright test --repeat-each=5`); trace link in every failure
 
 ## Phase 1: Agentic authoring
