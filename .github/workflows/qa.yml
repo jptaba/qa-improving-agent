@@ -35,6 +35,7 @@ jobs:
           OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
           OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
           OTEL_SERVICE_NAME: qa-harness-e2e
+          TRACE_REPORT_FILE: reports/trace-report-${{ matrix.shard }}.html
       - name: Skipped = failed, flaky = needs review
         if: ${{ !cancelled() }}
         run: node harness/ci/fail-on-skip-or-flaky.mjs reports/results-${{ matrix.shard }}.json
@@ -44,6 +45,31 @@ jobs:
           name: playwright-report-${{ matrix.shard }}
           path: reports/
           retention-days: 14
+
+  trace-report:
+    # One standalone HTML trace report for the whole run (both shards), plus the Playwright traces it links to.
+    # Download the "trace-report" artifact, unzip, open trace-report.html. Not a required check.
+    needs: e2e
+    if: ${{ !cancelled() && github.event_name != 'schedule' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-report-*
+          path: all
+      - name: Merge the shards into one report
+        run: node harness/reporters/build-trace-report.mjs --out all/trace-report.html --dir all
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trace-report
+          path: |
+            all/trace-report.html
+            all/**/trace.zip
+          retention-days: 30
 
   guardrails:
     if: github.event_name == 'pull_request'
