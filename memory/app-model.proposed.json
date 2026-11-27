@@ -1,39 +1,231 @@
 {
-  "_comment": "Proposed by an exploratory walk on 2026-11-24 (qa-explorer role, run by hand). Review and merge into memory/app-model.json. Additions are marked with \"new\": true.",
+  "_comment": "Proposed by the nightly explorer walk on 2026-11-27 (builds on the 2026-11-24 walk). Review and merge into memory/app-model.json. Additions are marked with \"new\": true.",
   "baseUrl": "http://localhost:4173",
   "routes": [
-    { "path": "/", "name": "Sign in", "auth": false, "elements": ["textbox Email", "textbox Password", "button Sign in", "alert (on error)"] },
-    { "path": "/checkout", "name": "Checkout", "auth": true, "redirectWhenSignedOut": "/", "elements": ["heading Checkout", "table Cart", "text Total", "radiogroup Payment method", "button Pay now", "alert (on error)"] },
-    { "path": "/confirmation?id=…", "name": "Order confirmed", "auth": true, "redirectWhenSignedOut": "/", "elements": ["heading Order confirmed", "text Order id", "text Total"] },
-    { "path": "/confirmation?id=<unknown>", "name": "Order not found", "auth": true, "status": 404, "requirement": "REQ-190 AC3", "elements": ["heading Order not found"], "new": true },
-    { "path": "/confirmation?id=<another shopper's order>", "name": "Order not found", "auth": true, "status": 404, "requirement": "REQ-190 AC2", "elements": ["heading Order not found"], "new": true },
-    { "path": "/<anything else>", "name": "Page not found", "auth": false, "status": 404, "elements": ["heading Page not found"], "new": true }
+    {
+      "path": "/",
+      "name": "Sign in",
+      "auth": false,
+      "elements": [
+        "textbox Email",
+        "textbox Password",
+        "button Sign in",
+        "alert (on error)"
+      ]
+    },
+    {
+      "path": "/checkout",
+      "name": "Checkout",
+      "auth": true,
+      "redirectWhenSignedOut": "/",
+      "elements": [
+        "heading Checkout",
+        "table Cart",
+        "text Total",
+        "radiogroup Payment method",
+        "button Pay now",
+        "alert (on error)"
+      ]
+    },
+    {
+      "path": "/confirmation?id=…",
+      "name": "Order confirmed",
+      "auth": true,
+      "redirectWhenSignedOut": "/",
+      "elements": [
+        "heading Order confirmed",
+        "text Order id",
+        "text Total"
+      ]
+    },
+    {
+      "path": "/confirmation?id=<unknown>",
+      "name": "Order not found",
+      "auth": true,
+      "status": 404,
+      "requirement": "REQ-190 AC3",
+      "elements": [
+        "heading Order not found"
+      ],
+      "new": true
+    },
+    {
+      "path": "/confirmation?id=<another shopper's order>",
+      "name": "Order not found",
+      "auth": true,
+      "status": 404,
+      "requirement": "REQ-190 AC2",
+      "elements": [
+        "heading Order not found"
+      ],
+      "new": true
+    },
+    {
+      "path": "/<anything else>",
+      "name": "Page not found",
+      "auth": false,
+      "status": 404,
+      "elements": [
+        "heading Page not found"
+      ],
+      "new": true
+    },
+    {
+      "path": "/checkout/ | /index.html",
+      "name": "Page not found",
+      "auth": false,
+      "status": 404,
+      "note": "trailing slash is not normalised",
+      "new": true
+    }
   ],
   "api": [
-    { "method": "POST", "path": "/api/login", "contract": "requirements/openapi/orders.yaml" },
-    { "method": "POST", "path": "/api/orders", "contract": "requirements/openapi/orders.yaml" },
-    { "method": "GET | HEAD", "path": "/api/health", "note": "body { status: 'ok', pid }" },
-    { "method": "*", "path": "/api/login | /api/orders | /api/health", "note": "unsupported methods return 405 with an Allow header", "new": true }
+    {
+      "method": "POST",
+      "path": "/api/login",
+      "contract": "requirements/openapi/orders.yaml"
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders",
+      "contract": "requirements/openapi/orders.yaml"
+    },
+    {
+      "method": "GET | HEAD",
+      "path": "/api/health",
+      "note": "body { status: 'ok', pid }"
+    },
+    {
+      "method": "*",
+      "path": "/api/login | /api/orders | /api/health",
+      "note": "unsupported methods return 405 with an Allow header",
+      "new": true
+    },
+    {
+      "method": "HEAD",
+      "path": "/ (pages)",
+      "note": "HEAD / returns 404 although GET / returns 200; only /api/health answers HEAD",
+      "new": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders",
+      "note": "ignores submitted items: total is always the fixed demo cart ($35.50), unknown skus and huge quantities get 201",
+      "escalation": "escalations/2026-11-27T0300-order-total-ignores-items.yml",
+      "new": true
+    },
+    {
+      "method": "*",
+      "path": "/api/<unknown>",
+      "note": "unknown API paths return 404 HTML without Allow header",
+      "new": true
+    }
   ],
-  "roles": [{ "name": "shopper", "account": "demo@example.com" }],
+  "roles": [
+    {
+      "name": "shopper",
+      "account": "demo@example.com"
+    },
+    {
+      "name": "shopper",
+      "account": "other@example.com",
+      "note": "cannot see demo@example.com's confirmation page (404)",
+      "new": true
+    }
+  ],
   "missing": [
-    { "what": "sign-out control", "note": "no sign-out button or link anywhere; sessions never end", "new": true }
+    {
+      "what": "sign-out control",
+      "note": "no sign-out button or link anywhere; sessions never end",
+      "new": true
+    }
   ],
   "stateGraph": [
-    { "from": "Sign in", "action": "valid credentials", "to": "Checkout" },
-    { "from": "Sign in", "action": "invalid credentials", "to": "Sign in + alert" },
-    { "from": "Sign in", "action": "empty fields or very long input", "to": "Sign in + alert", "new": true },
-    { "from": "Sign in", "action": "keyboard only (Tab, type, Enter)", "to": "Checkout", "new": true },
-    { "from": "Checkout", "action": "Pay now with valid card", "to": "Order confirmed" },
-    { "from": "Checkout", "action": "Pay now with expired card", "to": "Checkout + alert" },
-    { "from": "Checkout", "action": "Pay now clicked several times quickly", "to": "Order confirmed (one order; Pay now disabled while paying)", "requirement": "REQ-180", "fixed": "escalations/2026-11-24T1400-double-submit-creates-duplicate-orders.yml", "new": true },
-    { "from": "Order confirmed", "action": "browser Back", "to": "Checkout (Pay now active again)", "new": true },
-    { "from": "Order confirmed", "action": "refresh", "to": "Order confirmed", "new": true },
-    { "from": "Order confirmed", "action": "open URL from another session", "to": "Order not found (404) unless it is the same shopper", "requirement": "REQ-190", "fixed": "escalations/2026-11-24T1401-confirmation-page-access.yml", "new": true },
-    { "from": "signed out", "action": "open /checkout or /confirmation", "to": "Sign in", "new": true }
+    {
+      "from": "Sign in",
+      "action": "valid credentials",
+      "to": "Checkout"
+    },
+    {
+      "from": "Sign in",
+      "action": "invalid credentials",
+      "to": "Sign in + alert"
+    },
+    {
+      "from": "Sign in",
+      "action": "empty fields or very long input",
+      "to": "Sign in + alert",
+      "new": true
+    },
+    {
+      "from": "Sign in",
+      "action": "keyboard only (Tab, type, Enter)",
+      "to": "Checkout",
+      "new": true
+    },
+    {
+      "from": "Checkout",
+      "action": "Pay now with valid card",
+      "to": "Order confirmed"
+    },
+    {
+      "from": "Checkout",
+      "action": "Pay now with expired card",
+      "to": "Checkout + alert"
+    },
+    {
+      "from": "Checkout",
+      "action": "Pay now clicked several times quickly",
+      "to": "Order confirmed (one order; Pay now disabled while paying)",
+      "requirement": "REQ-180",
+      "fixed": "escalations/2026-11-24T1400-double-submit-creates-duplicate-orders.yml",
+      "new": true
+    },
+    {
+      "from": "Order confirmed",
+      "action": "browser Back",
+      "to": "Checkout (Pay now active again)",
+      "new": true
+    },
+    {
+      "from": "Order confirmed",
+      "action": "refresh",
+      "to": "Order confirmed",
+      "new": true
+    },
+    {
+      "from": "Order confirmed",
+      "action": "open URL from another session",
+      "to": "Order not found (404) unless it is the same shopper",
+      "requirement": "REQ-190",
+      "fixed": "escalations/2026-11-24T1401-confirmation-page-access.yml",
+      "new": true
+    },
+    {
+      "from": "signed out",
+      "action": "open /checkout or /confirmation",
+      "to": "Sign in",
+      "new": true
+    },
+    {
+      "from": "Checkout (signed in)",
+      "action": "open / directly",
+      "to": "Sign in page is shown (no redirect to Checkout)",
+      "new": true
+    },
+    {
+      "from": "Sign in",
+      "action": "email with different case (DEMO@example.com)",
+      "to": "Sign in + alert",
+      "new": true
+    }
   ],
   "checkedOk": [
     "keyboard-only sign-in and card selection (arrow keys) work; focus starts on Email",
-    "320px wide: no horizontal scroll on Checkout"
+    "320px wide: no horizontal scroll on Checkout",
+    "unsupported methods on /api/login, /api/orders, /api/health return 405 with Allow",
+    "malformed/null/array JSON bodies on /api/orders and /api/login return 400/401, not 500",
+    "100k-character email and password get the normal invalid-credentials alert",
+    "other@example.com gets 404 on demo's order; reload of confirmation keeps the total"
   ]
 }
