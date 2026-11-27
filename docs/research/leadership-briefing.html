@@ -104,6 +104,10 @@ button{font:inherit;color:inherit}
 .ph b{display:block;font-size:clamp(13px,1.3vw,17px);margin:4px 0 6px}
 .ph p{margin:0;font-size:clamp(11px,1vw,13.5px);color:var(--muted);line-height:1.4}
 .ph .gate{margin-top:8px;font-size:clamp(10.5px,.95vw,12.5px);color:var(--warn)}
+.st{display:inline-block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 7px;margin-top:8px;font-weight:700}
+.st.done{background:rgba(123,216,143,.16);color:var(--good)} .st.part{background:rgba(255,209,102,.16);color:var(--warn)}
+.ph .now{margin-top:6px;font-size:clamp(10.5px,.95vw,12.5px);color:var(--muted);line-height:1.35}
+.big small{font-size:.45em;color:var(--muted)}
 
 /* compare bars */
 .bars{display:flex;flex-direction:column;gap:14px;margin-top:18px}
@@ -233,7 +237,7 @@ pre .c{color:#7e89b3}
 </svg>
 
 <header class="topbar">
-  <div class="brand"><b>Self-Improving Test Agents</b> · leadership briefing</div>
+  <div class="brand"><b>Self-Improving Test Agents</b> · leadership briefing · pilot report, November 2026</div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-view="deck">Presentation</button>
     <button class="tab" role="tab" aria-selected="false" data-view="guide">Implementation guide</button>
@@ -244,10 +248,10 @@ pre .c{color:#7e89b3}
 <!-- =================== PRESENTATION =================== -->
 <main id="deck" class="view active" aria-label="Presentation">
 
-<section class="slide" data-notes="Open with the one-line idea. We are not buying a smarter robot tester. We are building a team of AI helpers plus an independent referee, so the system can improve itself without fooling itself. Everything that follows explains why the referee matters.">
-  <div class="kicker r">Leadership briefing · Quality engineering</div>
+<section class="slide" data-notes="Open with the one-line idea. We are not buying a smarter robot tester. We are building a team of AI helpers plus an independent referee, so the system can improve itself without fooling itself. This is now a report, not a proposal: the pilot is built and running against a demo shop, and the later slides show what it does and the numbers it produces.">
+  <div class="kicker r">Leadership briefing · Quality engineering · Pilot report</div>
   <h1 class="r" style="--d:1">Test agents that<br><span class="hl">can't grade their<br>own homework</span></h1>
-  <p class="lede r" style="--d:2">How we let AI test our applications, and get better every week, <b>without it fooling itself or us.</b></p>
+  <p class="lede r" style="--d:2">How we let AI test our applications, and get better every week, <b>without it fooling itself or us.</b> The pilot is built and running.</p>
 </section>
 
 <section class="slide" data-notes="Set up the problem in business terms. Teams now produce code faster than ever, often with AI help. Testing has not kept pace. Manual regression testing is slow, automated suites break when screens change, and nobody fully trusts a green build. The cost shows up as slower releases or escaped defects.">
@@ -357,6 +361,21 @@ pre .c{color:#7e89b3}
   </div>
 </section>
 
+<section class="slide" data-notes="This is what exists today. The pilot runs against a small demo shop with sign-in, checkout, confirmation and an orders API, so we could prove the whole loop before pointing it at a real product. Eight business requirements are under test with 44 automated tests. Four AI agents work on a schedule in the cloud: an explorer that walks the app daily looking for bugs, a builder that writes and repairs tests daily, a blind referee author that writes the independent checks, and a weekly improver. Every change goes through six required automated checks before it can merge. Agents open their own pull requests, and those merge themselves only when every check is green. People are pulled in for real bugs, unclear requirements, screenshot changes and changes to the guardrails themselves.">
+  <div class="kicker r">The pilot, built</div>
+  <h2 class="r" style="--d:1">Running today, <span class="hl2">end to end</span>, on a demo shop.</h2>
+  <div class="grid g4">
+    <div class="card r" style="--d:2"><div class="big teal">8</div><h3>requirements under test</h3><p>Sign-in, checkout, payment, order privacy, API contract, accessibility and page appearance. 44 automated tests, each tagged to its requirement.</p></div>
+    <div class="card r" style="--d:3"><div class="big teal">4</div><h3>AI agents on a schedule</h3><p>Explorer and builder daily, referee author daily, improver weekly. Each one ends in a pull request, never a direct change.</p></div>
+    <div class="card r" style="--d:4"><div class="big teal">6</div><h3>required checks per change</h3><p>The test suite in two halves, guardrails, the blind referee, API fuzzing, and a scorecard that must not get worse.</p></div>
+    <div class="card r" style="--d:5"><div class="big teal">14</div><h3>changes merged in the build-out</h3><p>Agent changes merge themselves when every check passes. Screenshots and guardrail changes still need the owner.</p></div>
+  </div>
+  <div class="loops">
+    <div class="pill r" style="--d:6"><b>People step in for:</b> real bugs, unclear requirements, new screenshots, changes to the guardrails</div>
+    <div class="pill r" style="--d:7"><b>Every run leaves:</b> a scorecard and a one-file trace report anyone can open</div>
+  </div>
+</section>
+
 <section class="slide" data-notes="These are enforced by software, not by asking the AI nicely. Test checks are locked. Any change that weakens a test, adds a skip, or extends a timeout goes to a person. Skipped tests count as failures. Retries are capped because retries increase cheating. Every agent has an easy way to say 'I think this is a real bug' instead of forcing a pass; in research that single option cut cheating from 54 to 9 percent. And we regularly feed in deliberately broken builds that must never come back green.">
   <div class="kicker r">Guardrails</div>
   <h2 class="r" style="--d:1">Six locks, <span class="hl">enforced by software</span>, not by trust.</h2>
@@ -385,50 +404,51 @@ pre .c{color:#7e89b3}
   </div>
 </section>
 
-<section class="slide" data-notes="We earn autonomy in stages. Each phase has a measurable exit gate, and we only move on when we pass it. Phase 0 is plumbing with no AI. Phase 1 adds AI-written tests with humans reviewing every one. Phase 2 builds and calibrates the referee. Only once the referee is trustworthy do we turn on the healing and the weekly self-improvement. We haven't put durations on these because they depend on the application and team; we'll size them after Phase 0.">
+<section class="slide" data-notes="We earn autonomy in stages, each with a measurable gate. On the demo shop every phase is built and most are running. Two gaps matter. First, everything so far runs against a demo app; the next step is a real product's preview environment. Second, the referee works, but it has not been calibrated against an expert's judgement yet, because that needs a person who knows the business to label 20 to 50 real cases. Until that happens, treat the referee's numbers as indicative.">
   <div class="kicker r">Roadmap</div>
-  <h2 class="r" style="--d:1">Earn autonomy in stages, <span class="hl">each with a trust gate.</span></h2>
+  <h2 class="r" style="--d:1">Earn autonomy in stages. <span class="hl">Where the pilot stands.</span></h2>
   <div class="tl">
     <div class="bar"></div>
-    <div class="ph r" style="--d:2"><div class="dot"></div><div class="n">Phase 0</div><b>Solid foundation</b><p>Fresh environments, repeatable runs, logging. No AI yet.</p><div class="gate">Gate: existing tests pass reliably</div></div>
-    <div class="ph r" style="--d:3"><div class="dot"></div><div class="n">Phase 1</div><b>AI writes tests</b><p>Every AI-written test reviewed by a person.</p><div class="gate">Gate: acceptance rate tracked</div></div>
-    <div class="ph r" style="--d:4"><div class="dot"></div><div class="n">Phase 2</div><b>The referee</b><p>Build and calibrate the blind evaluator.</p><div class="gate">Gate: planted bugs caught, no false passes</div></div>
-    <div class="ph r" style="--d:5"><div class="dot"></div><div class="n">Phase 3</div><b>Guarded fixing</b><p>Triage and healing, plus API, accessibility and visual tools.</p><div class="gate">Gate: wrong fixes measured</div></div>
-    <div class="ph r" style="--d:6"><div class="dot"></div><div class="n">Phase 4</div><b>Self-improvement</b><p>Weekly learning loop behind the exam gate.</p><div class="gate">Gate: detection rises, false alarms don't</div></div>
-    <div class="ph r" style="--d:7"><div class="dot"></div><div class="n">Phase 5</div><b>Scale out</b><p>Overnight exploration, mobile, more apps.</p><div class="gate">Gate: new real bugs found monthly</div></div>
+    <div class="ph r" style="--d:2"><div class="dot"></div><div class="n">Phase 0</div><b>Solid foundation</b><p>Fresh environments, repeatable runs, logging. No AI yet.</p><div class="gate">Gate: existing tests pass reliably</div><span class="st done">Built</span><div class="now">Next: point it at a real app's preview</div></div>
+    <div class="ph r" style="--d:3"><div class="dot"></div><div class="n">Phase 1</div><b>AI writes tests</b><p>Every AI-written test reviewed by a person.</p><div class="gate">Gate: acceptance rate tracked</div><span class="st done">Built</span><div class="now">Daily builder agent; review queue open</div></div>
+    <div class="ph r" style="--d:4"><div class="dot"></div><div class="n">Phase 2</div><b>The referee</b><p>Build and calibrate the blind evaluator.</p><div class="gate">Gate: planted bugs caught, no false passes</div><span class="st part">Built, not calibrated</span><div class="now">Needs expert-labelled cases</div></div>
+    <div class="ph r" style="--d:5"><div class="dot"></div><div class="n">Phase 3</div><b>Guarded fixing</b><p>Triage and healing, plus API, accessibility and visual tools.</p><div class="gate">Gate: wrong fixes measured</div><span class="st done">Built</span><div class="now">API fuzzing, accessibility, approved screenshots</div></div>
+    <div class="ph r" style="--d:6"><div class="dot"></div><div class="n">Phase 4</div><b>Self-improvement</b><p>Weekly learning loop behind the exam gate.</p><div class="gate">Gate: detection rises, false alarms don't</div><span class="st done">Running</span><div class="now">Weekly improver behind the scorecard gate</div></div>
+    <div class="ph r" style="--d:7"><div class="dot"></div><div class="n">Phase 5</div><b>Scale out</b><p>Overnight exploration, mobile, more apps.</p><div class="gate">Gate: new real bugs found monthly</div><span class="st part">Started</span><div class="now">Daily explorer; mobile and more apps later</div></div>
   </div>
 </section>
 
-<section class="slide" data-notes="Four numbers tell leadership whether this is working. The first is the headline: of the bugs we deliberately plant in builds the system has never seen, how many does it catch? The second is false alarms: if it cries wolf, teams stop trusting it. The third is integrity: deliberately impossible builds must never pass, and that number must stay at zero. The fourth is human acceptance and cost per change.">
+<section class="slide" data-notes="Four numbers tell leadership whether this is working, and here they are from the latest run. Bugs caught: all seven planted bugs were caught by both the test suite and the independent referee, each on the right requirement, including the ones held back from the improver. False alarms: none; all six healthy runs passed first time with retries switched off. Integrity: the deliberately impossible build was rejected by both. Cost: the pilot runs on an existing Claude subscription and free CI minutes. Be clear that these are bugs we planted in a demo app; the real test is the first real product.">
   <div class="kicker r">How we'll know it works</div>
-  <h2 class="r" style="--d:1">Four numbers on one page.</h2>
+  <h2 class="r" style="--d:1">Four numbers on one page. <span class="hl2">The pilot's latest.</span></h2>
   <div class="grid g4">
-    <div class="card r" style="--d:2"><div class="big teal">↑</div><h3>Bugs caught</h3><p>Share of deliberately planted bugs found on builds the system has never seen. <b style="color:var(--text)">The headline number.</b></p></div>
-    <div class="card r" style="--d:3"><div class="big violet">↓</div><h3>False alarms</h3><p>How often it fails a healthy build. Too high and teams stop trusting it.</p></div>
-    <div class="card r" style="--d:4"><div class="big red">0</div><h3>Integrity alarms</h3><p>Impossible builds that came back green. Must stay at zero.</p></div>
-    <div class="card r" style="--d:5"><div class="big">$</div><h3>Trust &amp; cost</h3><p>Share of AI proposals people accept, and cost and time per change.</p></div>
+    <div class="card r" style="--d:2"><div class="big teal"><span class="count" data-to="7">0</span>/7</div><h3>Bugs caught</h3><p>Planted bugs caught on their own requirement, by both the test suite and the blind referee, including every bug in the held-out set. <b style="color:var(--text)">The headline number.</b></p></div>
+    <div class="card r" style="--d:3"><div class="big violet">0<small> of 6</small></div><h3>False alarms</h3><p>Healthy runs that failed, across the suite and the referee. Every healthy run passed first time, with retries off.</p></div>
+    <div class="card r" style="--d:4"><div class="big red">0</div><h3>Integrity alarms</h3><p>Impossible builds that came back green. Must stay at zero, and does.</p></div>
+    <div class="card r" style="--d:5"><div class="big">14</div><h3>Trust &amp; cost</h3><p>Changes merged in the build-out, all through the same checks. Runs on an existing Claude subscription and CI minutes; acceptance rate is tracked from here.</p></div>
   </div>
+  <p class="src r" style="--d:6;margin-top:14px">Canary run of 27 November 2026 on the demo shop: 3 healthy runs per target, 7 planted bugs, 1 impossible build. Bugs we planted ourselves; real-product numbers start with the first real application.</p>
 </section>
 
-<section class="slide" data-notes="Be candid about what we don't know. Most of the evidence on building these systems comes from AI companies' own engineering blogs and hasn't been independently replicated. The strongest testing evidence is from Android apps and unit tests, not web applications like ours. No public benchmark measures whether a web test agent finds real bugs. This is why the plan builds our own measurement first; we'll generate the evidence as we go.">
+<section class="slide" data-notes="Be candid about what the pilot has not shown yet. It runs on a demo shop whose bugs we planted ourselves, so it proves the machinery, not the value on our real products. The referee has not been checked against an expert's judgement. We chose to let agent changes merge automatically when all checks pass, which is faster but puts the weight on the checks; the guardrails themselves can only be changed by the owner. And as with any browsing agent, pages can carry hidden instructions, which is why verdicts come from code, not from what an agent claims.">
   <div class="kicker r">Honest risks</div>
   <h2 class="r" style="--d:1">What we <span class="hl">don't know yet</span>, and how we'll find out.</h2>
   <div class="grid g2">
-    <div class="card r" style="--d:2"><h3>Evidence is early</h3><p>Much of the design guidance comes from AI vendors' own reports, not independent studies.</p></div>
-    <div class="card r" style="--d:3"><h3>Web results unproven</h3><p>The strongest results are from mobile apps and unit tests. Web impact must be measured on our apps.</p></div>
-    <div class="card r" style="--d:4"><h3>AI can be manipulated</h3><p>Web pages can carry hidden instructions. Verdicts come from code checks, and agents run in locked-down sandboxes.</p></div>
-    <div class="card r" style="--d:5"><h3>Our mitigation</h3><p>Build the measurement first (planted bugs, expert labels) so every claim is tested on our own software.</p></div>
+    <div class="card r" style="--d:2"><h3>Proven on a demo, not on our product</h3><p>The demo shop is small and its bugs are planted by us. Real products have messier data, slower pages and bugs nobody planned.</p></div>
+    <div class="card r" style="--d:3"><h3>The referee isn't calibrated yet</h3><p>It catches the planted bugs, but no domain expert has checked its verdicts. Until then its numbers are indicative.</p></div>
+    <div class="card r" style="--d:4"><h3>Changes merge without a reviewer</h3><p>By choice, agent changes merge when every check passes. The checks, the planted-bug scorecard and the owner-only guardrails carry that trust.</p></div>
+    <div class="card r" style="--d:5"><h3>AI can be manipulated</h3><p>Web pages can carry hidden instructions. Verdicts come from code checks, never from an agent's say-so, and the referee can't see the builders' work.</p></div>
   </div>
 </section>
 
-<section class="slide ask" data-notes="Close with clear asks. First, approve Phase 0 to 2 as a pilot. Second, pick one application with clear written requirements. Third, name a domain expert who can spend a few hours labelling pass or fail cases; this is what makes the referee trustworthy. Fourth, agree a monthly AI and compute budget with hard caps per change. Agree a review date at the Phase 2 gate.">
+<section class="slide ask" data-notes="Close with the decisions that move this from demo to product. First, choose the first real application; it needs written acceptance criteria and a preview environment per change. Second, name a domain expert for a few hours of labelling; that calibrates the referee. Third, name an owner for the few things only a person may approve: new screenshots, changes to the guardrails, real bug reports and unclear requirements. Fourth, decide how it is paid for at scale: today the agents run on an existing Claude subscription and free CI minutes, which is enough for a pilot but not for several teams. Agree a review date once the first real application has a month of scorecards.">
   <div class="kicker r">Decisions we need</div>
-  <h2 class="r" style="--d:1">Four asks to start the pilot.</h2>
+  <h2 class="r" style="--d:1">Four asks to take it <span class="hl">from demo to product.</span></h2>
   <div class="grid g2">
-    <div class="card r" style="--d:2"><div class="num">1</div><h3>Approve Phases 0–2 as a pilot</h3><p>Foundation, AI-written tests with human review, and the calibrated referee.</p></div>
-    <div class="card r" style="--d:3"><div class="num">2</div><h3>Choose one pilot application</h3><p>Ideally one with clear acceptance criteria and API contracts.</p></div>
-    <div class="card r" style="--d:4"><div class="num">3</div><h3>Name a domain expert</h3><p>A few hours to label pass/fail cases. This is what makes the referee trustworthy.</p></div>
-    <div class="card r" style="--d:5"><div class="num">4</div><h3>Set a capped AI budget</h3><p>Hard per-change and monthly limits; running out means human review, never an automatic pass.</p></div>
+    <div class="card r" style="--d:2"><div class="num">1</div><h3>Choose the first real application</h3><p>One with written acceptance criteria and a preview environment for each change. Its requirements can flow in from Jira, Confluence or its API spec.</p></div>
+    <div class="card r" style="--d:3"><div class="num">2</div><h3>Name a domain expert</h3><p>A few hours to label 20–50 pass/fail cases. This calibrates the referee, the last open step of Phase 2.</p></div>
+    <div class="card r" style="--d:4"><div class="num">3</div><h3>Name an owner for approvals</h3><p>New screenshots, guardrail changes, real bug reports and unclear requirements wait for this person.</p></div>
+    <div class="card r" style="--d:5"><div class="num">4</div><h3>Agree how it's paid for at scale</h3><p>The pilot runs on an existing Claude subscription and CI minutes. More teams need a capped API budget; running out means review, never a pass.</p></div>
   </div>
 </section>
 
@@ -455,6 +475,7 @@ pre .c{color:#7e89b3}
 <div class="gwrap">
 <nav class="toc" id="toc">
   <p class="t">Implementation guide</p>
+  <a href="#g-status">Pilot status</a>
   <a href="#g-overview">1. Overview &amp; principles</a>
   <a href="#g-arch">2. Reference architecture</a>
   <a href="#g-roles">3. Agent roles &amp; permissions</a>
@@ -480,7 +501,28 @@ pre .c{color:#7e89b3}
 </label>
 <h1>Self-improving test agents: implementation guide</h1>
 <p class="sub">A harness-engineering design for AI agents that test an application under test (AUT) with Playwright, extended with specialist tools where Playwright isn't enough, and anchored by a blind, requirements-only acceptance evaluator.</p>
-<div class="callout violet"><p><b>Evidence labels.</b> <span class="lbl v">VERIFIED</span> peer-reviewed research or primary product documentation. <span class="lbl vc">VENDOR</span> results a vendor reports about itself, not replicated. <span class="lbl i">INFERENCE</span> this design's synthesis. Versions reflect the state as of November 2026 (Playwright 1.64.1). Re-check versions before you build.</p></div>
+<div class="callout violet"><p><b>Evidence labels.</b> <span class="lbl v">VERIFIED</span> peer-reviewed research or primary product documentation. <span class="lbl vc">VENDOR</span> results a vendor reports about itself, not replicated. <span class="lbl i">INFERENCE</span> this design's synthesis. Versions reflect the state as of November 2026 (Playwright 1.65.1). Re-check versions before you build.</p></div>
+
+<h2 id="g-status" style="border-top:0;margin-top:28px">Pilot status (November 2026)</h2>
+<p>The design below is built and running in the pilot repository against a demo shop (sign-in, checkout, confirmation and an orders API with switchable planted bugs). Sections 1–17 remain the reference design. This section records what landed and where the build differs from the design. For day-to-day use, see the project guide (<code>docs/project-guide.html</code>).</p>
+<table>
+<tr><th>Phase</th><th>State</th><th>What exists</th></tr>
+<tr><td><b>0. Foundation</b></td><td><span class="lbl v">BUILT</span></td><td>Demo app with health endpoint and planted-bug switch; fixed clock; requirement-tagged tests; JSON inventory; pinned Playwright 1.65.1 container; sharded CI; standalone HTML trace report per run; OpenTelemetry export ready for a backend. <b>Open:</b> a real application's per-change preview.</td></tr>
+<tr><td><b>1. Agentic authoring</b></td><td><span class="lbl v">BUILT</span></td><td>Planner, generator and triage roles; admission at 5 of 5 passes; a daily builder agent that writes tests for uncovered requirements and repairs a red main branch. <b>Open:</b> human review of tests marked <code>pending-review</code>.</td></tr>
+<tr><td><b>2. Blind evaluator</b></td><td><span class="lbl vc">PARTLY</span></td><td>Sealed evaluator with four verdicts; planted-bug catalogue split into optimisation and held-out; impossible build; scorecard. A daily blind author agent writes its checks from requirement text alone. <b>Open:</b> 20–50 expert labels; a different model family.</td></tr>
+<tr><td><b>3. Triage + stack</b></td><td><span class="lbl v">BUILT</span></td><td>Schemathesis fuzzing as a required check; request-contract tests; axe scans of every page plus a manual checklist; approved screenshots that change only with the owner's <code>visual-approved</code> label.</td></tr>
+<tr><td><b>4. Improvement loop</b></td><td><span class="lbl v">RUNNING</span></td><td>Weekly improver agent, one change per pull request; the <code>canary-gate</code> check rejects any change that lowers the held-out catch rate or the healthy pass rate.</td></tr>
+<tr><td><b>5. Expansion</b></td><td><span class="lbl vc">STARTED</span></td><td>Daily explorer agent. Ablation procedure written, first run at the next model upgrade. No mobile app yet.</td></tr>
+</table>
+<h3>Where the build differs from the design</h3>
+<table>
+<tr><th>Design</th><th>Built</th><th>Why</th></tr>
+<tr><td>Sealed acceptance plane in a separate repository with its own credentials</td><td>Same repository; the blind author agent works from a sparse checkout that leaves out tests, skills, specs, memory and inventory, and CI rejects any change that moves the referee and the work it grades together</td><td>Simpler to run; revisit if it proves leaky</td></tr>
+<tr><td>Human approval of every improvement</td><td>Agent pull requests merge themselves when all six required checks pass</td><td>Owner's choice for hands-off development. Guardrail files, screenshots, real bugs and unclear requirements still go to the owner</td></tr>
+<tr><td>Agents run with an API key in CI</td><td>Agents run as scheduled cloud tasks on a Claude subscription; CI runs only deterministic code</td><td>No API key in the pilot</td></tr>
+<tr><td>Trace backend (Langfuse or similar)</td><td>A one-file HTML trace report for every run, merged across CI shards; OpenTelemetry export switches on when a backend exists</td><td>No backend in the pilot</td></tr>
+<tr><td>Requirements written by people</td><td>Written by Claude on the owner's instruction during the pilot, in their own pull requests; adapters pull them from OpenAPI, Jira and Confluence at go-live (tested against a local mock)</td><td>No live Jira or Confluence yet</td></tr>
+</table>
 
 <h2 id="g-overview">1. Overview &amp; principles</h2>
 <p><b>Agent = Model + Harness.</b> The harness is everything except the model: the loop, tools, context, memory, hooks, permissions, checks and environment. Every harness component encodes an assumption about what the model can't do alone, so re-test each one when the model changes.</p>
@@ -586,7 +628,7 @@ sealed-acceptance/            <span class="c"># SEPARATE repo, separate credenti
 <h2 id="g-tests">6. Authoring &amp; admission</h2>
 <h3>Bootstrap Playwright's agents</h3>
 <p>Playwright 1.56+ ships planner, generator and healer agent definitions. The planner explores from a seed test and an optional PRD and writes <code>specs/</code>. The generator writes <code>tests/</code>, verifying locators live. <span class="lbl v">VERIFIED</span></p>
-<pre><code>npm i -D @playwright/test@1.64.1
+<pre><code>npm i -D @playwright/test@1.65.1
 npx playwright install --with-deps
 npx playwright init-agents        <span class="c"># adds planner / generator / healer definitions + seed test; see `--help` for your agent loop</span></code></pre>
 <p>Tag every test with its requirement ID so the traceability matrix builds itself:</p>
@@ -788,7 +830,7 @@ jobs:
   e2e:
     needs: preview
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
     strategy:
       fail-fast: false
       matrix:
@@ -895,7 +937,7 @@ jobs:
   <li>Ops and security: <a href="https://render.com/articles/preview-environments-as-agent-sandboxes">Render preview environments</a> · <a href="https://www.dash0.com/knowledge/opentelemetry-genai-semantic-conventions-explained">OTel GenAI conventions (Dash0)</a> · <a href="https://langfuse.com/integrations/native/opentelemetry">Langfuse OTel</a> · <a href="https://www.humansecurity.com/learn/blog/owasp-top-10-agentic-applications/">OWASP Agentic Top 10 (summary)</a></li>
   <li>Stack: <a href="https://glama.ai/mcp/servers/specmatic/specmatic-mcp-server">Specmatic MCP</a> · <a href="https://github.com/schemathesis/schemathesis/releases">Schemathesis</a> · <a href="https://smartbear.com/blog/practice-what-you-pact-catch-breaking-api-changes-before-production-in-the-smartbear-mcp/">SmartBear / Pact MCP</a> · <a href="https://raw.githubusercontent.com/grafana/mcp-k6/main/README.md">mcp-k6</a> · <a href="https://github.com/appium/mcp-appium">Appium MCP</a> · <a href="https://maestro.dev/mcp">Maestro MCP</a> · <a href="https://applitools.com/docs/eyes/integrations/mcp-servers/applitools-mcp">Applitools MCP</a> · <a href="https://www.signadot.com/docs/integrations/mcp">Signadot MCP</a> · <a href="https://www.deque.com/blog/automated-testing-study-identifies-57-percent-of-digital-accessibility-issues">Deque 57% study</a></li>
 </ul>
-<p class="gfoot">Prepared November 2026 from the project research report "Self improving Playwright test agents". Code samples are starting points: verify flags and versions against current docs before adopting them.</p>
+<p class="gfoot">Prepared November 2026 from the project research report "Self improving Playwright test agents", and updated at the end of the same month with the pilot's status. Code samples are starting points: verify flags and versions against current docs before adopting them.</p>
 </article>
 </div>
 </div>
