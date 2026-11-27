@@ -29,10 +29,11 @@ h2{font-size:15px;margin:0 0 12px;letter-spacing:.01em}
 .scroll{overflow-x:auto}
 .timeline{position:relative;min-width:640px}
 .axis{position:relative;height:18px;margin-left:110px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
-.axis i{position:absolute;top:0;transform:translateX(-50%);font-style:normal}
+.axis i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;white-space:nowrap}
+.axis i:first-child{transform:none}.axis i.end{transform:translateX(-100%)}
 .lane{display:flex;align-items:center;height:22px}
 .lane>span{width:110px;flex:none;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.track{position:relative;flex:1;height:16px;background:var(--soft);border-radius:4px}
+.track{position:relative;flex:1;height:16px;background:var(--soft);border-radius:4px;overflow:hidden}
 .bar{position:absolute;top:1px;height:14px;border-radius:3px;min-width:2px;cursor:pointer;opacity:.9}
 .bar:hover,.bar.sel{opacity:1;outline:2px solid var(--ink);outline-offset:0}
 .bar.passed{background:var(--pass)}.bar.failed,.bar.timedOut{background:var(--fail)}.bar.skipped,.bar.interrupted{background:var(--skip)}.bar.retry{background:repeating-linear-gradient(45deg,var(--flaky) 0 4px,transparent 4px 7px),var(--flaky)}
@@ -59,8 +60,9 @@ pre.err{border-left:3px solid var(--fail)}
 .step .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .step .name em{font-style:normal;font-size:11px;color:var(--muted);margin-right:6px;text-transform:uppercase}
 .step.err .name{color:var(--fail)}
-.step .w{position:relative;height:10px;background:var(--soft);border-radius:3px}
-.step .w i{position:absolute;top:0;height:10px;border-radius:3px;min-width:2px}
+.step .w{position:relative;height:10px;background:var(--soft);border-radius:3px;overflow:hidden;min-width:0}
+.step .w i{position:absolute;top:0;height:10px;border-radius:3px;min-width:2px;max-width:100%}
+.step>*{min-width:0}
 .step .t{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
@@ -114,7 +116,7 @@ function drawTimeline() {
   const span = t1 - t0;
   const step = [100, 250, 500, 1000, 2000, 5000, 10000, 15000, 30000, 60000, 120000, 300000].find((s) => span / s <= 8) ?? 600000;
   let axis = '';
-  for (let v = 0; v <= span; v += step) axis += '<i style="left:' + ((v / span) * 100).toFixed(3) + '%">' + ms(v) + '</i>';
+  for (let v = 0; v <= span; v += step) axis += '<i' + (v / span > 0.92 ? ' class="end"' : '') + ' style="left:' + ((v / span) * 100).toFixed(3) + '%">' + ms(v) + '</i>';
   let html = '<div class="axis">' + axis + '</div>';
   for (const lane of lanes) {
     let bars = '';
@@ -168,10 +170,25 @@ function drawTests() {
 // Detail: attempts, error, step waterfall, trace
 const catName = { hook: 'hook', fixture: 'fixture', 'pw:api': 'action', expect: 'expect', 'test.step': 'step' };
 const catColor = { hook: 'var(--c-hook)', fixture: 'var(--c-fixture)', 'pw:api': 'var(--c-pw)', expect: 'var(--c-expect)', 'test.step': 'var(--c-step)' };
-function stepRows(steps, total, depth) {
-  return steps.map((s) => '<div class="step' + (s.e ? ' err' : '') + '"><div class="name" style="padding-left:' + depth * 14 + 'px" title="' + esc(s.t + (s.e ? '\n' + s.e : '')) + '"><em>' + esc(catName[s.c] ?? s.c) + '</em>' + esc(s.t) +
-    '</div><div class="w"><i style="left:' + Math.min(99.7, (s.s / total) * 100).toFixed(2) + '%;width:' + Math.max(0.3, Math.min((s.d / total) * 100, 100 - Math.min(99.7, (s.s / total) * 100))).toFixed(2) + '%;background:' + (s.e ? 'var(--fail)' : catColor[s.c] ?? 'var(--skip)') + '"></i></div><div class="t">' + ms(s.d) + '</div></div>' +
-    (s.k ? stepRows(s.k, total, depth + 1) : '')).join('');
+// The waterfall's scale is the steps' own extent, not the attempt's duration: Playwright reports hooks and
+// teardown that run after the test body as steps, so they can end later than result.duration.
+function extent(steps, acc = { lo: Infinity, hi: 0 }) {
+  for (const s of steps) { acc.lo = Math.min(acc.lo, s.s); acc.hi = Math.max(acc.hi, s.s + s.d); if (s.k) extent(s.k, acc); }
+  return acc;
+}
+function stepRows(steps, scale, depth) {
+  const pct = (v) => Math.min(100, Math.max(0, ((v - scale.lo) / scale.span) * 100));
+  return steps.map((s) => {
+    const left = pct(s.s), right = pct(s.s + s.d);
+    return '<div class="step' + (s.e ? ' err' : '') + '"><div class="name" title="' + esc(s.t + (s.e ? '\n' + s.e : '')) + '"><span style="margin-left:' + Math.min(depth, 6) * 14 + 'px"><em>' + esc(catName[s.c] ?? s.c) + '</em>' + esc(s.t) + '</span>' +
+      '</div><div class="w"><i style="left:' + left.toFixed(2) + '%;width:' + Math.max(0, right - left).toFixed(2) + '%;background:' + (s.e ? 'var(--fail)' : catColor[s.c] ?? 'var(--skip)') + '"></i></div><div class="t">' + ms(s.d) + '</div></div>' +
+      (s.k ? stepRows(s.k, scale, depth + 1) : '');
+  }).join('');
+}
+function stepScale(steps, duration) {
+  const e = extent(steps);
+  const lo = Number.isFinite(e.lo) ? Math.min(0, e.lo) : 0;
+  return { lo, span: Math.max(e.hi, duration, 1) - lo };
 }
 function drawDetail() {
   const t = tests.find((x) => x.id === state.sel);
@@ -184,7 +201,7 @@ function drawDetail() {
     (t.results.length > 1 ? '<div class="attempts">' + t.results.map((x, i) => '<button data-attempt="' + i + '" class="' + (i === a ? 'on' : '') + '"><span class="chip ' + x.status + '">' + x.status + '</span> ' + (i ? 'retry ' + x.retry : 'first run') + ' · ' + ms(x.duration) + '</button>').join('') + '</div>' : '<div style="height:8px"></div>') +
     (r.error ? '<pre class="err">' + esc(r.error.message) + (r.error.at ? '\n\nat ' + esc(r.error.at) : '') + '</pre>' + (r.error.snippet ? '<pre>' + esc(r.error.snippet) + '</pre>' : '') : '') +
     (r.trace ? '<p class="muted">Playwright trace: <code>' + esc(r.trace) + '</code>. Open it with <code>npx playwright show-trace ' + esc(r.trace) + '</code> from this report\'s folder, or drop the file on trace.playwright.dev.</p>' : '') +
-    '<h2 style="margin-top:14px">Steps <span class="muted" style="font-weight:400">' + ms(r.duration) + '</span></h2><div class="steps">' + (r.steps.length ? stepRows(r.steps, Math.max(r.duration, 1), 0) : '<p class="muted">No steps recorded.</p>') + '</div>' +
+    '<h2 style="margin-top:14px">Steps <span class="muted" style="font-weight:400">' + ms(r.duration) + ' test' + (() => { const sc = stepScale(r.steps, r.duration); return sc.span > r.duration * 1.05 + 5 ? ' · ' + ms(sc.span) + ' with setup and teardown' : ''; })() + '</span></h2><div class="steps">' + (r.steps.length ? stepRows(r.steps, stepScale(r.steps, r.duration), 0) : '<p class="muted">No steps recorded.</p>') + '</div>' +
     '<div class="legend">' + Object.keys(catName).map((c) => '<span><i style="background:' + catColor[c] + '"></i>' + catName[c] + '</span>').join('') + '<span><i style="background:var(--fail)"></i>error</span></div></div>';
 }
 
