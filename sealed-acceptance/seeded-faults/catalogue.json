@@ -42,6 +42,18 @@
       "requirement_id": "REQ-190",
       "split": "holdout",
       "description": "any signed-in shopper can open another shopper's confirmation page"
+    },
+    {
+      "id": "expiry-month-early",
+      "requirement_id": "REQ-142",
+      "split": "holdout",
+      "description": "A card is treated as expired throughout its own expiry month instead of being valid through its last day"
+    },
+    {
+      "id": "layout-overflow",
+      "requirement_id": "REQ-200",
+      "split": "optimisation",
+      "description": "The checkout page overflows horizontally at 1280x720 (cart table far wider than the viewport)"
     }
   ],
   "impossible": [
