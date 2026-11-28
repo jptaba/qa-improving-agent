@@ -1,0 +1,37 @@
+type: unclear_requirement
+requirement_id: REQ-150
+status: open            # open | answered | done
+raised: 2026-11-28
+test: none (found by exploratory walk)
+
+summary: |
+  POST /api/orders ignores the submitted items: unknown SKUs are accepted
+  and the total is always the fixed demo-cart total.
+
+  While signed in as demo@example.com, with a valid card (card_visa):
+    items: [{ sku: "NOPE", qty: 1 }]        -> 201, total 35.5
+    items: [{ sku: "ZZZ", qty: 999999999 }] -> 201, total 35.5
+    items: [{ sku: "WID-1", qty: 1 }, { sku: "WID-1", qty: 1 }] -> 201, 35.5
+
+  REQ-150 AC1 says the total equals the sum of quantity x unit price, and
+  AC2 says confirmation shows the same total. For the demo cart this
+  holds, but an order for different items gets the same total, so the
+  amount charged does not follow what was ordered. No requirement says
+  whether unknown SKUs must be rejected (400 or 422) or whether the API
+  must price the submitted items. The contract only demands sku is text
+  and qty is a whole number of at least 1.
+
+  Question for a person: should the server reject unknown SKUs and price
+  the order from the submitted items, or is the demo cart fixed on purpose
+  (and this is out of scope)?
+  Options: app-is-wrong | out-of-scope-for-demo
+
+evidence: |
+  Reproduced with a throwaway Playwright request script on 2026-11-28.
+  Code: demo-aut/server.mjs, POST /api/orders (uses cartTotal() and never
+  reads body.items beyond shape validation).
+
+# ---- Your reply. Fill in, set status to "answered", and ask Claude to act on it. ----
+answer:
+  decision:              # app-is-wrong | out-of-scope-for-demo
+  notes: |
